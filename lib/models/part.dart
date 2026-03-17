@@ -8,10 +8,10 @@ class Part {
   final List<String> symptoms;
   final List<String> tools;
   final String instructions;
-  final String difficulty; // Легко, Средне, Сложно
-  final int estimatedTimeMin; // Время в минутах
-  final String? videoUrl; // Ссылка на видео
-  final List<String> oemNumbers; // Оригинальные номера
+  final String difficulty;
+  final int estimatedTimeMin;
+  final String? videoUrl;
+  final List<String> oemNumbers;
   final String imageUrl;
 
   Part({
@@ -30,4 +30,5 @@ class Part {
     required this.oemNumbers,
     required this.imageUrl,
   });
+
 }

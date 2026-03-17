@@ -9,6 +9,7 @@ class PartsListScreen extends StatelessWidget {
   final Car car;
   final Category category;
 
+
   const PartsListScreen({
     super.key,
     required this.car,

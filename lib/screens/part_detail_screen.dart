@@ -26,7 +26,7 @@ class PartDetailScreen extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('${part.name} сохранена'),
-                  backgroundColor: AppTheme.deepOrange,
+                  backgroundColor: Colors.green,
                 ),
               );
             },

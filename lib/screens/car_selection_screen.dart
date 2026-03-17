@@ -5,7 +5,7 @@ import '../data/mock_data.dart';
 import '../theme.dart';
 
 class CarSelectionScreen extends StatelessWidget {
-   CarSelectionScreen({super.key});
+  CarSelectionScreen({super.key});
 
   final List<Car> cars = MockData.getCars();
 

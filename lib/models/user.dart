@@ -3,8 +3,8 @@ class User {
   final String name;
   final String email;
   final String? avatarUrl;
-  final List<String> favoriteCars; // VIN или ID машин
-  final List<String> savedParts; // Избранные детали
+  final List<String> favoriteCars;
+  final List<String> savedParts;
   final DateTime memberSince;
 
   User({
@@ -17,7 +17,6 @@ class User {
     required this.memberSince,
   });
 
-  // Для тестового пользователя
   factory User.demoUser() {
     return User(
       id: '1',

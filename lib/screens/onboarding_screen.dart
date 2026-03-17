@@ -24,19 +24,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Все детали на ладони',
       description: 'Выберите марку и модель авто, и получите полный каталог всех деталей с подробным описанием, где они находятся и за что отвечают.',
       icon: Icons.category,
-      color: Colors.blue,
+      color: AppTheme.deepOrange,
     ),
     OnboardingItem(
       title: 'Пошаговые инструкции',
       description: 'Каждая деталь содержит подробную инструкцию по замене, список инструментов, признаки неисправности и примерную стоимость.',
       icon: Icons.menu_book,
-      color: Colors.green,
+      color: AppTheme.deepOrange,
     ),
     OnboardingItem(
       title: 'Экономьте на ремонте',
       description: 'Узнайте, что можно починить своими руками, а когда лучше обратиться в сервис. Сэкономьте тысячи рублей!',
       icon: Icons.attach_money,
-      color: Colors.purple,
+      color: AppTheme.deepOrange,
     ),
   ];
 

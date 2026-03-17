@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'all_seasonal_checks_screen.dart';
 import 'parts_list_screen.dart';
+import 'profile_screen.dart';
 import '../models/car.dart';
 import '../models/category.dart';
 import '../data/mock_data.dart';
@@ -65,17 +67,40 @@ class CategoriesScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(car.fullName),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () {
-              Navigator.pushNamed(context, '/profile');
-            },
+
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined),
+                onPressed: () {
+                  // Показать уведомления - передаем контекст
+                  _showNotificationsDialog(context);
+                },
+              ),
+              // Индикатор новых уведомлений (красная точка)
+              Positioned(
+                right: 11,
+                top: 11,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.greenAccent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
+      // Добавляем Drawer (боковое меню)
+      drawer: Drawer(
+        child: ProfileScreen(), // Используем наш экран профиля как содержимое
+      ),
       body: CustomScrollView(
         slivers: [
-          // SliverToBoxAdapter позволяет вставить обычный виджет в Sliver-список
+          // Сезонная проверка
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -104,9 +129,9 @@ class CategoriesScreen extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Сезонное обслуживание',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -122,17 +147,36 @@ class CategoriesScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      TextButton(
+                      OutlinedButton(
                         onPressed: () {
-                          // Показать все сезонные проверки
+                          // Переход на экран всех сезонных проверок
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AllSeasonalChecksScreen(
+                                currentSeason: currentSeason,
+                              ),
+                            ),
+                          );
                         },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.deepOrange,
+                          side: const BorderSide(
+                              width: 2.0,
+                              color: AppTheme.deepOrange
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                        ),
                         child: const Text('Все'),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
 
-                  // Карточка сезонной проверки
+
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -140,8 +184,8 @@ class CategoriesScreen extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppTheme.deepOrange.withOpacity(0.1),
-                          AppTheme.lightOrange,
+                          Colors.white,
+                          Colors.white,
                         ],
                       ),
                       borderRadius: BorderRadius.circular(20),
@@ -229,53 +273,6 @@ class CategoriesScreen extends StatelessWidget {
                               ],
                             ),
                           )).toList(),
-
-                          const Divider(height: 20),
-
-                          // Кнопка "Напомнить позже"
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              TextButton.icon(
-                                onPressed: () {
-                                  // Отложить напоминание
-                                },
-                                icon: const Icon(Icons.notifications_none, size: 18),
-                                label: const Text('Напомнить через неделю'),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: AppTheme.deepOrange,
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.deepOrange,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Row(
-                                  children: [
-                                    Icon(
-                                      Icons.check_circle,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      'Готово',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                     ),
@@ -326,7 +323,7 @@ class CategoriesScreen extends StatelessWidget {
                       );
                     },
                     child: Card(
-                      elevation: 2,
+                      elevation:4,
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
@@ -378,6 +375,102 @@ class CategoriesScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  // Функция для показа диалога с уведомлениями
+  void _showNotificationsDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Уведомления',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildNotificationItem(
+                context: context, // Передаем контекст явно
+                icon: Icons.warning_amber,
+                title: 'Срочно! Сезонная проверка',
+                subtitle: 'Пора менять шины на зимние',
+                time: '2 часа назад',
+                isUrgent: true,
+              ),
+              _buildNotificationItem(
+                context: context, // Передаем контекст явно
+                icon: Icons.build,
+                title: 'Напоминание о ТО',
+                subtitle: 'Замена масла через 500 км',
+                time: 'вчера',
+                isUrgent: false,
+              ),
+              _buildNotificationItem(
+                context: context, // Передаем контекст явно
+                icon: Icons.ac_unit,
+                title: 'Сезонное обслуживание',
+                subtitle: 'Проверьте кондиционер перед летом',
+                time: '3 дня назад',
+                isUrgent: false,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNotificationItem({
+    required BuildContext context, // Явно принимаем контекст
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String time,
+    required bool isUrgent,
+  }) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isUrgent ? Colors.red.withOpacity(0.1) : AppTheme.lightOrange,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          color: isUrgent ? Colors.red : AppTheme.deepOrange,
+        ),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: isUrgent ? FontWeight.bold : FontWeight.normal,
+          color: isUrgent ? Colors.red : Colors.black,
+        ),
+      ),
+      subtitle: Text(subtitle),
+      trailing: Text(
+        time,
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey[500],
+        ),
+      ),
+      onTap: () {
+        Navigator.pop(context); // Теперь context определен
+        // Здесь можно добавить переход к соответствующему разделу
+        // Например: Navigator.push(context, MaterialPageRoute(builder: (context) => SomeScreen()));
+      },
     );
   }
 }

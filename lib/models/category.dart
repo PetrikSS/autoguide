@@ -1,7 +1,7 @@
 class Category {
   final String id;
   final String name;
-  final String icon; // Emoji
+  final String icon;
   final int partCount;
 
   Category({
