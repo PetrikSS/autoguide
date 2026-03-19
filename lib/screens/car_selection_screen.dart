@@ -1,13 +1,44 @@
 import 'package:flutter/material.dart';
 import 'categories_screen.dart';
 import '../models/car.dart';
-import '../data/mock_data.dart';
+import '../database/database_helper.dart';
 import '../theme.dart';
 
-class CarSelectionScreen extends StatelessWidget {
-  CarSelectionScreen({super.key});
+class CarSelectionScreen extends StatefulWidget {
+  const CarSelectionScreen({super.key});
 
-  final List<Car> cars = MockData.getCars();
+  @override
+  State<CarSelectionScreen> createState() => _CarSelectionScreenState();
+}
+
+class _CarSelectionScreenState extends State<CarSelectionScreen> {
+  List<Car> cars = [];
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCars();
+  }
+
+  Future<void> _loadCars() async {
+    try {
+      final dbHelper = DatabaseHelper();
+      final loadedCars = await dbHelper.getCars();
+
+      setState(() {
+        cars = loadedCars;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+        errorMessage = 'Ошибка загрузки: $e';
+      });
+      print('Ошибка загрузки машин: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,67 +54,18 @@ class CarSelectionScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : errorMessage != null
+          ? Center(child: Text(errorMessage!))
+          : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Быстрый поиск по VIN
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.lightOrange,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppTheme.deepOrange,
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.deepOrange,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.qr_code_scanner,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Найти по VIN',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Сфотографируйте или введите VIN-номер',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      color: AppTheme.deepOrange,
-                      size: 16,
-                    ),
-                  ],
-                ),
-              ),
+              // Быстрый поиск по VIN (оставляем как есть)
+              _buildVinSearch(),
 
               const SizedBox(height: 24),
 
@@ -106,11 +88,68 @@ class CarSelectionScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Список авто
+              // Список авто из базы данных
               ...cars.map((car) => _buildCarCard(car, context)),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildVinSearch() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.lightOrange,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.deepOrange,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.deepOrange,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.qr_code_scanner,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Найти по VIN',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Сфотографируйте или введите VIN-номер',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.arrow_forward_ios,
+            color: AppTheme.deepOrange,
+            size: 16,
+          ),
+        ],
       ),
     );
   }

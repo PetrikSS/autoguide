@@ -15,7 +15,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingItem> _onboardingData = [
     OnboardingItem(
-      title: 'Добро пожаловать в AutoGuide!',
+      title: 'Добро пожаловать в AutoGuidePro!',
       description: 'Ваш персональный помощник по ремонту автомобиля. Здесь вы найдете всё, чтобы понять устройство машины и научиться её чинить.',
       icon: Icons.auto_awesome,
       color: AppTheme.deepOrange,

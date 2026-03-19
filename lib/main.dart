@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/onboarding_screen.dart'; // Онбординг первый
+import 'screens/onboarding_screen.dart';
 import 'screens/car_selection_screen.dart';
 import 'screens/profile_screen.dart';
 import 'theme.dart';
@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AutoGuide',
+      title: 'AutoGuidePro',
       theme: AppTheme.theme,
       initialRoute: '/',
       routes: {

@@ -4,15 +4,39 @@ import 'parts_list_screen.dart';
 import 'profile_screen.dart';
 import '../models/car.dart';
 import '../models/category.dart';
-import '../data/mock_data.dart';
+import '../database/database_helper.dart';
 import '../theme.dart';
 
-class CategoriesScreen extends StatelessWidget {
+class CategoriesScreen extends StatefulWidget {
   final Car car;
 
   const CategoriesScreen({super.key, required this.car});
 
-  // Определяем текущий сезон
+  @override
+  State<CategoriesScreen> createState() => _CategoriesScreenState();
+}
+
+class _CategoriesScreenState extends State<CategoriesScreen> {
+  List<Category> categories = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    final dbHelper = DatabaseHelper();
+    final loadedCategories = await dbHelper.getCategories();
+
+    setState(() {
+      categories = loadedCategories;
+      isLoading = false;
+    });
+  }
+
+  // Определяем текущий сезон (оставляем как есть)
   String _getCurrentSeason() {
     final now = DateTime.now();
     final month = now.month;
@@ -23,7 +47,7 @@ class CategoriesScreen extends StatelessWidget {
     return 'Зима';
   }
 
-  // Получаем рекомендации по сезону
+  // Получаем рекомендации по сезону (оставляем как есть)
   List<Map<String, dynamic>> _getSeasonalChecks() {
     final season = _getCurrentSeason();
 
@@ -59,25 +83,21 @@ class CategoriesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final categories = MockData.getCategories();
     final currentSeason = _getCurrentSeason();
     final seasonalChecks = _getSeasonalChecks();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(car.fullName),
+        title: Text(widget.car.fullName),
         actions: [
-
           Stack(
             children: [
               IconButton(
                 icon: const Icon(Icons.notifications_outlined),
                 onPressed: () {
-                  // Показать уведомления - передаем контекст
                   _showNotificationsDialog(context);
                 },
               ),
-              // Индикатор новых уведомлений (красная точка)
               Positioned(
                 right: 11,
                 top: 11,
@@ -94,20 +114,20 @@ class CategoriesScreen extends StatelessWidget {
           ),
         ],
       ),
-      // Добавляем Drawer (боковое меню)
       drawer: Drawer(
-        child: ProfileScreen(), // Используем наш экран профиля как содержимое
+        child: ProfileScreen(),
       ),
-      body: CustomScrollView(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : CustomScrollView(
         slivers: [
-          // Сезонная проверка
+          // Сезонная проверка (оставляем как есть)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Заголовок сезонной проверки
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -149,7 +169,6 @@ class CategoriesScreen extends StatelessWidget {
                       ),
                       OutlinedButton(
                         onPressed: () {
-                          // Переход на экран всех сезонных проверок
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -175,8 +194,6 @@ class CategoriesScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-
-
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -297,7 +314,7 @@ class CategoriesScreen extends StatelessWidget {
             ),
           ),
 
-          // Сетка категорий
+          // Сетка категорий (теперь из базы данных)
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverGrid(
@@ -316,7 +333,7 @@ class CategoriesScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => PartsListScreen(
-                            car: car,
+                            car: widget.car,
                             category: category,
                           ),
                         ),
@@ -378,7 +395,6 @@ class CategoriesScreen extends StatelessWidget {
     );
   }
 
-  // Функция для показа диалога с уведомлениями
   void _showNotificationsDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -401,7 +417,7 @@ class CategoriesScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _buildNotificationItem(
-                context: context, // Передаем контекст явно
+                context: context,
                 icon: Icons.warning_amber,
                 title: 'Срочно! Сезонная проверка',
                 subtitle: 'Пора менять шины на зимние',
@@ -409,7 +425,7 @@ class CategoriesScreen extends StatelessWidget {
                 isUrgent: true,
               ),
               _buildNotificationItem(
-                context: context, // Передаем контекст явно
+                context: context,
                 icon: Icons.build,
                 title: 'Напоминание о ТО',
                 subtitle: 'Замена масла через 500 км',
@@ -417,7 +433,7 @@ class CategoriesScreen extends StatelessWidget {
                 isUrgent: false,
               ),
               _buildNotificationItem(
-                context: context, // Передаем контекст явно
+                context: context,
                 icon: Icons.ac_unit,
                 title: 'Сезонное обслуживание',
                 subtitle: 'Проверьте кондиционер перед летом',
@@ -432,7 +448,7 @@ class CategoriesScreen extends StatelessWidget {
   }
 
   Widget _buildNotificationItem({
-    required BuildContext context, // Явно принимаем контекст
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
@@ -467,9 +483,7 @@ class CategoriesScreen extends StatelessWidget {
         ),
       ),
       onTap: () {
-        Navigator.pop(context); // Теперь context определен
-        // Здесь можно добавить переход к соответствующему разделу
-        // Например: Navigator.push(context, MaterialPageRoute(builder: (context) => SomeScreen()));
+        Navigator.pop(context);
       },
     );
   }

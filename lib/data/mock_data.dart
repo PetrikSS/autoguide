@@ -4,82 +4,82 @@ import '../models/part.dart';
 
 class MockData {
   // ============ АВТОМОБИЛИ ============
-  static List<Car> getCars() {    // <-- ЭТО МЕТОД, ВЫЗЫВАЕМ СО СКОБКАМИ
-    return [
-      Car(
-        brand: 'Kia',
-        model: 'Rio',
-        generation: 'IV (QB)',
-        years: '2017-2022',
-        imageUrl: null,
-      ),
-      Car(
-        brand: 'Hyundai',
-        model: 'Solaris',
-        generation: 'II (HC)',
-        years: '2017-2022',
-        imageUrl: null,
-      ),
-      Car(
-        brand: 'Lada',
-        model: 'Granta',
-        generation: 'II',
-        years: '2019-2023',
-        imageUrl: null,
-      ),
-      Car(
-        brand: 'Toyota',
-        model: 'Camry',
-        generation: 'XV70',
-        years: '2018-2023',
-        imageUrl: null,
-      ),
-      Car(
-        brand: 'Volkswagen',
-        model: 'Polo',
-        generation: 'V',
-        years: '2015-2020',
-        imageUrl: null,
-      ),
-      Car(
-        brand: 'Renault',
-        model: 'Logan',
-        generation: 'II',
-        years: '2014-2020',
-        imageUrl: null,
-      ),
-      Car(
-        brand: 'Skoda',
-        model: 'Octavia',
-        generation: 'A7',
-        years: '2013-2020',
-        imageUrl: null,
-      ),
-      Car(
-        brand: 'Nissan',
-        model: 'Qashqai',
-        generation: 'J11',
-        years: '2014-2021',
-        imageUrl: null,
-      ),
-    ];
-  }
+  // static List<Car> getCars() {    // <-- ЭТО МЕТОД, ВЫЗЫВАЕМ СО СКОБКАМИ
+  //   return [
+  //     Car(
+  //       brand: 'Kia',
+  //       model: 'Rio',
+  //       generation: 'IV (QB)',
+  //       years: '2017-2022',
+  //       imageUrl: null,
+  //     ),
+  //     Car(
+  //       brand: 'Hyundai',
+  //       model: 'Solaris',
+  //       generation: 'II (HC)',
+  //       years: '2017-2022',
+  //       imageUrl: null,
+  //     ),
+  //     Car(
+  //       brand: 'Lada',
+  //       model: 'Granta',
+  //       generation: 'II',
+  //       years: '2019-2023',
+  //       imageUrl: null,
+  //     ),
+  //     Car(
+  //       brand: 'Toyota',
+  //       model: 'Camry',
+  //       generation: 'XV70',
+  //       years: '2018-2023',
+  //       imageUrl: null,
+  //     ),
+  //     Car(
+  //       brand: 'Volkswagen',
+  //       model: 'Polo',
+  //       generation: 'V',
+  //       years: '2015-2020',
+  //       imageUrl: null,
+  //     ),
+  //     Car(
+  //       brand: 'Renault',
+  //       model: 'Logan',
+  //       generation: 'II',
+  //       years: '2014-2020',
+  //       imageUrl: null,
+  //     ),
+  //     Car(
+  //       brand: 'Skoda',
+  //       model: 'Octavia',
+  //       generation: 'A7',
+  //       years: '2013-2020',
+  //       imageUrl: null,
+  //     ),
+  //     Car(
+  //       brand: 'Nissan',
+  //       model: 'Qashqai',
+  //       generation: 'J11',
+  //       years: '2014-2021',
+  //       imageUrl: null,
+  //     ),
+  //   ];
+  // }
 
-  // ============ КАТЕГОРИИ ============
-  static List<Category> getCategories() {    // <-- МЕТОД
-    return [
-      Category(id: 'engine', name: 'Двигатель', icon: '🔧', partCount: 28),
-      Category(id: 'brakes', name: 'Тормозная система', icon: '🛑', partCount: 22),
-      Category(id: 'suspension', name: 'Ходовая часть', icon: '⚙️', partCount: 35),
-      Category(id: 'electrics', name: 'Электрика', icon: '⚡', partCount: 25),
-      Category(id: 'exhaust', name: 'Выхлопная система', icon: '💨', partCount: 14),
-      Category(id: 'body', name: 'Кузов', icon: '🚘', partCount: 18),
-      Category(id: 'interior', name: 'Салон и комфорт', icon: '🪑', partCount: 12),
-      Category(id: 'cooling', name: 'Система охлаждения', icon: '❄️', partCount: 16),
-      Category(id: 'fuel', name: 'Топливная система', icon: '⛽', partCount: 15),
-      Category(id: 'transmission', name: 'Трансмиссия', icon: '⚙️', partCount: 20),
-    ];
-  }
+  // // ============ КАТЕГОРИИ ============
+  // static List<Category> getCategories() {    // <-- МЕТОД
+  //   return [
+  //     Category(id: 'engine', name: 'Двигатель', icon: '🔧', partCount: 28),
+  //     Category(id: 'brakes', name: 'Тормозная система', icon: '🛑', partCount: 22),
+  //     Category(id: 'suspension', name: 'Ходовая часть', icon: '⚙️', partCount: 35),
+  //     Category(id: 'electrics', name: 'Электрика', icon: '⚡', partCount: 25),
+  //     Category(id: 'exhaust', name: 'Выхлопная система', icon: '💨', partCount: 14),
+  //     Category(id: 'body', name: 'Кузов', icon: '🚘', partCount: 18),
+  //     Category(id: 'interior', name: 'Салон и комфорт', icon: '🪑', partCount: 12),
+  //     Category(id: 'cooling', name: 'Система охлаждения', icon: '❄️', partCount: 16),
+  //     Category(id: 'fuel', name: 'Топливная система', icon: '⛽', partCount: 15),
+  //     Category(id: 'transmission', name: 'Трансмиссия', icon: '⚙️', partCount: 20),
+  //   ];
+  // }
 
   // ============ ДЕТАЛИ ============
   static List<Part> getParts() {    // <-- МЕТОД
