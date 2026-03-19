@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'part_detail_screen.dart';
 import '../models/car.dart';
 import '../models/category.dart';
-import '../data/mock_data.dart';
+import '../models/part.dart';
+import '../database/database_helper.dart'; // <-- МЕНЯЕМ НА БД
 import '../theme.dart';
 
-class PartsListScreen extends StatelessWidget {
+class PartsListScreen extends StatefulWidget { // <-- МЕНЯЕМ НА StatefulWidget
   final Car car;
   final Category category;
-
 
   const PartsListScreen({
     super.key,
@@ -17,14 +17,38 @@ class PartsListScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final parts = MockData.getPartsByCategory(category.id);
+  State<PartsListScreen> createState() => _PartsListScreenState();
+}
 
+class _PartsListScreenState extends State<PartsListScreen> {
+  List<Part> parts = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadParts();
+  }
+
+  Future<void> _loadParts() async {
+    final dbHelper = DatabaseHelper();
+    final loadedParts = await dbHelper.getPartsByCategory(widget.category.id);
+
+    setState(() {
+      parts = loadedParts;
+      isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(category.name),
+        title: Text(widget.category.name),
       ),
-      body: parts.isEmpty
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : parts.isEmpty
           ? Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -63,7 +87,7 @@ class PartsListScreen extends StatelessWidget {
                 ),
                 child: Center(
                   child: Icon(
-                    _getIconForCategory(category.id),
+                    _getIconForCategory(widget.category.id),
                     color: AppTheme.deepOrange,
                   ),
                 ),
@@ -134,7 +158,7 @@ class PartsListScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => PartDetailScreen(
-                      car: car,
+                      car: widget.car,
                       part: part,
                     ),
                   ),

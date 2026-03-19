@@ -156,8 +156,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           // Анимированная иконка
           Container(
-            width: 200,
-            height: 200,
+            width: 150,
+            height: 150,
             decoration: BoxDecoration(
               color: item.color.withOpacity(0.1),
               shape: BoxShape.circle,
@@ -177,7 +177,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             item.title,
             style: const TextStyle(
-              fontSize: 28,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               height: 1.2,
             ),
@@ -190,7 +190,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             item.description,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               color: Colors.grey[600],
               height: 1.5,
             ),
