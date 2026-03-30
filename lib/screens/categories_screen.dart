@@ -211,11 +211,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                          MaterialPageRoute(
-                                    builder: (context) => AllSeasonalChecksScreen(
-                                      currentSeason: currentSeason,
-                                    ),
-                                  ),
+                        MaterialPageRoute(
+                          builder: (context) => AllSeasonalChecksScreen(
+                            currentSeason: currentSeason,
+                          ),
+                        ),
                       );
                     },
                     child:  Container(
@@ -246,16 +246,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                     width: 40,
                                     height: 40,
                                     decoration: BoxDecoration(
-                                      color: check['urgent']
-                                          ? Colors.red.withOpacity(0.1)
-                                          : AppTheme.deepOrange.withOpacity(0.1),
+                                      color: AppTheme.deepOrange.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
                                       check['icon'],
-                                      color: check['urgent']
-                                          ? Colors.red
-                                          : AppTheme.deepOrange,
+                                      color:
+                                      AppTheme.deepOrange,
                                       size: 22,
                                     ),
                                   ),
@@ -424,11 +421,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)), // Уменьшен радиус
       ),
       builder: (BuildContext context) {
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16), // Было 20
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,16 +433,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               const Text(
                 'Уведомления',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 18, // Было 24
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12), // Было 16
               _buildNotificationItem(
                 context: context,
                 icon: Icons.warning_amber,
                 title: 'Срочно! Сезонная проверка',
-                subtitle: 'Пора менять шины на зимние',
+                subtitle: 'Проверьте, что сменили шины',
                 time: '2 часа назад',
                 isUrgent: true,
               ),
@@ -481,14 +478,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     required bool isUrgent,
   }) {
     return ListTile(
+      dense: true, // Добавлено для компактности
+      contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4), // Уменьшен отступ
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           color: isUrgent ? Colors.red.withOpacity(0.1) : AppTheme.lightOrange,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(
           icon,
+          size: 20, // Уменьшен размер иконки
           color: isUrgent ? Colors.red : AppTheme.deepOrange,
         ),
       ),
@@ -497,13 +497,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         style: TextStyle(
           fontWeight: isUrgent ? FontWeight.bold : FontWeight.normal,
           color: isUrgent ? Colors.red : Colors.black,
+          fontSize: 13, // Добавлен размер текста
         ),
       ),
-      subtitle: Text(subtitle),
+      subtitle: subtitle.isNotEmpty ? Text(
+        subtitle,
+        style: const TextStyle(fontSize: 11), // Уменьшен размер текста
+      ) : null,
       trailing: Text(
         time,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: 11,
           color: Colors.grey[500],
         ),
       ),
