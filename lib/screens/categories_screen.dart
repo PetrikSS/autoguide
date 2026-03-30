@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'all_seasonal_checks_screen.dart';
 import 'parts_list_screen.dart';
@@ -27,13 +28,26 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Future<void> _loadCategories() async {
-    final dbHelper = DatabaseHelper();
-    final loadedCategories = await dbHelper.getCategories();
+    try {
+      final dbHelper = DatabaseHelper();
+      final loadedCategories = await dbHelper.getCategories().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          debugPrint('❌ getCategories() timeout');
+          return [];
+        },
+      );
 
-    setState(() {
-      categories = loadedCategories;
-      isLoading = false;
-    });
+      setState(() {
+        categories = loadedCategories;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('❌ Ошибка загрузки категорий: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   // Определяем текущий сезон (оставляем как есть)
@@ -56,7 +70,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         return [
           {'title': 'Смена шин', 'subtitle': 'Переобуваемся в летнюю резину', 'icon': Icons.tire_repair, 'urgent': true},
           {'title': 'Проверка кондиционера', 'subtitle': 'Заправка и диагностика', 'icon': Icons.ac_unit, 'urgent': false},
-          {'title': 'Омывайка', 'subtitle': 'Заменить на летнюю', 'icon': Icons.water_drop, 'urgent': false},
+          {'title': 'Омывающая жидкость', 'subtitle': 'Заменить на летнюю', 'icon': Icons.water_drop, 'urgent': false},
         ];
       case 'Осень':
         return [
@@ -121,7 +135,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
         slivers: [
-          // Сезонная проверка (оставляем как есть)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -167,130 +180,142 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           ),
                         ],
                       ),
-                      OutlinedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AllSeasonalChecksScreen(
-                                currentSeason: currentSeason,
-                              ),
-                            ),
-                          );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppTheme.deepOrange,
-                          side: const BorderSide(
-                              width: 2.0,
-                              color: AppTheme.deepOrange
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                        ),
-                        child: const Text('Все'),
-                      ),
+                      // OutlinedButton(
+                      //   onPressed: () {
+                      //     Navigator.push(
+                      //       context,
+                      //       MaterialPageRoute(
+                      //         builder: (context) => AllSeasonalChecksScreen(
+                      //           currentSeason: currentSeason,
+                      //         ),
+                      //       ),
+                      //     );
+                      //   },
+                      //   style: OutlinedButton.styleFrom(
+                      //     foregroundColor: AppTheme.deepOrange,
+                      //     side: const BorderSide(
+                      //         width: 2.0,
+                      //         color: AppTheme.deepOrange
+                      //     ),
+                      //     shape: RoundedRectangleBorder(
+                      //       borderRadius: BorderRadius.circular(20.0),
+                      //     ),
+                      //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                      //   ),
+                      //   child: const Text('Все'),
+                      // ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white,
-                          Colors.white,
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppTheme.deepOrange.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          ...seasonalChecks.map((check) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: check['urgent']
-                                        ? Colors.red.withOpacity(0.1)
-                                        : AppTheme.deepOrange.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                          MaterialPageRoute(
+                                    builder: (context) => AllSeasonalChecksScreen(
+                                      currentSeason: currentSeason,
+                                    ),
                                   ),
-                                  child: Icon(
-                                    check['icon'],
-                                    color: check['urgent']
-                                        ? Colors.red
-                                        : AppTheme.deepOrange,
-                                    size: 22,
+                      );
+                    },
+                    child:  Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white,
+                            Colors.white,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppTheme.deepOrange.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            ...seasonalChecks.map((check) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: check['urgent']
+                                          ? Colors.red.withOpacity(0.1)
+                                          : AppTheme.deepOrange.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      check['icon'],
+                                      color: check['urgent']
+                                          ? Colors.red
+                                          : AppTheme.deepOrange,
+                                      size: 22,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            check['title'],
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 15,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              check['title'],
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 15,
+                                              ),
                                             ),
-                                          ),
-                                          if (check['urgent'])
-                                            Container(
-                                              margin: const EdgeInsets.only(left: 8),
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 6,
-                                                vertical: 2,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.red,
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                              child: const Text(
-                                                'Срочно',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w500,
+                                            if (check['urgent'])
+                                              Container(
+                                                margin: const EdgeInsets.only(left: 8),
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 6,
+                                                  vertical: 2,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.red,
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
+                                                child: const Text(
+                                                  'Срочно',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        check['subtitle'],
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.grey[600],
+                                          ],
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          check['subtitle'],
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: AppTheme.deepOrange,
-                                  size: 14,
-                                ),
-                              ],
-                            ),
-                          )).toList(),
-                        ],
+                                  Icon(
+                                    Icons.arrow_forward_ios,
+                                    color: AppTheme.deepOrange,
+                                    size: 14,
+                                  ),
+                                ],
+                              ),
+                            )).toList(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -350,8 +375,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              width: 60,
-                              height: 60,
+                              width: 45,
+                              height: 45,
                               decoration: BoxDecoration(
                                 color: AppTheme.lightOrange,
                                 shape: BoxShape.circle,
@@ -359,7 +384,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               child: Center(
                                 child: Text(
                                   category.icon,
-                                  style: const TextStyle(fontSize: 30),
+                                  style: const TextStyle(fontSize: 22),
                                 ),
                               ),
                             ),
@@ -368,7 +393,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               category.name,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                                fontSize: 12,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -376,7 +401,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             Text(
                               '${category.partCount} деталей',
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: 10,
                                 color: Colors.grey[600],
                               ),
                             ),
@@ -478,7 +503,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       trailing: Text(
         time,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 10,
           color: Colors.grey[500],
         ),
       ),

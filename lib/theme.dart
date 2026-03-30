@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
 
-  static const Color deepOrange = Color(0xFFEC5300); // Основной терракотовый
+  static const Color deepOrange = Color(0xFFD85210); // Основной терракотовый
   static const Color darkOrange = Color(0xFFA33A00); // Для нажатий
   static const Color lightOrange = Color(0xFFFDE6D9); // Для подложек
   static const Color backgroundGrey = Color(0xFFF8F8F8); // Светло-серый фон

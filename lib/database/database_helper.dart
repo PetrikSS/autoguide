@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform, File, Directory; // <-- ДОБАВЛЯЕМ ЭТОТ ИМПОРТ
 import 'package:flutter/services.dart';
@@ -16,6 +17,7 @@ class DatabaseHelper {
 
   static Database? _database;
   static bool _initialized = false;
+  static Completer<Database>? _dbCompleter;
 
   // Инициализация для Windows (упрощённая)
   static void _initializeForWindows() {
@@ -46,7 +48,20 @@ class DatabaseHelper {
     _initializeForWindows();
 
     if (_database != null) return _database!;
-    _database = await _initDatabase();
+
+    // Защита от параллельных вызовов
+    if (_dbCompleter != null) return _dbCompleter!.future;
+    _dbCompleter = Completer<Database>();
+
+    try {
+      _database = await _initDatabase();
+      _dbCompleter!.complete(_database!);
+    } catch (e) {
+      _dbCompleter!.completeError(e);
+      _dbCompleter = null;
+      rethrow;
+    }
+
     return _database!;
   }
 
@@ -129,7 +144,7 @@ class DatabaseHelper {
 
     return List.generate(maps.length, (i) {
       return Category(
-        id: maps[i]['id'],
+        id: maps[i]['id'].toString(),
         name: maps[i]['name'],
         icon: maps[i]['icon'],
         partCount: maps[i]['partCount'],
@@ -144,9 +159,9 @@ class DatabaseHelper {
 
     return List.generate(maps.length, (i) {
       return Part(
-        id: maps[i]['id'],
+        id: maps[i]['id'].toString(),
         name: maps[i]['name'],
-        categoryId: maps[i]['categoryId'],
+        categoryId: maps[i]['categoryId'].toString(),
         description: maps[i]['description'],
         location: maps[i]['location'],
         priceRange: maps[i]['priceRange'],
@@ -167,14 +182,14 @@ class DatabaseHelper {
     final List<Map<String, dynamic>> maps = await db.query(
       'parts',
       where: 'categoryId = ?',
-      whereArgs: [categoryId],
+      whereArgs: [int.tryParse(categoryId) ?? categoryId],
     );
 
     return List.generate(maps.length, (i) {
       return Part(
-        id: maps[i]['id'],
+        id: maps[i]['id'].toString(),
         name: maps[i]['name'],
-        categoryId: maps[i]['categoryId'],
+        categoryId: maps[i]['categoryId'].toString(),
         description: maps[i]['description'],
         location: maps[i]['location'],
         priceRange: maps[i]['priceRange'],
@@ -195,15 +210,15 @@ class DatabaseHelper {
     final List<Map<String, dynamic>> maps = await db.query(
       'parts',
       where: 'id = ?',
-      whereArgs: [id],
+      whereArgs: [int.tryParse(id) ?? id],
     );
 
     if (maps.isEmpty) return null;
 
     return Part(
-      id: maps[0]['id'],
+      id: maps[0]['id'].toString(),
       name: maps[0]['name'],
-      categoryId: maps[0]['categoryId'],
+      categoryId: maps[0]['categoryId'].toString(),
       description: maps[0]['description'],
       location: maps[0]['location'],
       priceRange: maps[0]['priceRange'],
