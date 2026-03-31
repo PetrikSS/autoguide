@@ -74,46 +74,37 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Поиск по названию (перенесен выше)
+              // Поиск по названию
               TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Поиск по марке, модели, году...',
-                  hintStyle: TextStyle(
-                    color: Colors.grey[400],
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: Colors.black, // Оранжевая иконка поиска
-                  ),
+                  hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
+                  prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      _searchController.clear();
-                      setState(() => _searchQuery = '');
-                    },
-                  )
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
                       : null,
                   filled: true,
-                  fillColor: Colors.grey.shade100,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF2C2C2C)
+                      : Colors.grey.shade100,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.15),
                       width: 1,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: AppTheme.deepOrange,
-                      width: 2,
-                    ),
+                    borderSide: const BorderSide(color: AppTheme.deepOrange, width: 2),
                   ),
                 ),
                 onChanged: (v) => setState(() => _searchQuery = v),
@@ -166,6 +157,7 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
   }
 
   Widget _buildVinSearch() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -178,12 +170,9 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.lightOrange,
+          color: isDark ? const Color(0xFF1E1E1E) : AppTheme.lightOrange,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: AppTheme.deepOrange,
-            width: 1,
-          ),
+          border: Border.all(color: AppTheme.deepOrange, width: 1),
         ),
         child: Row(
           children: [
@@ -193,39 +182,32 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
                 color: AppTheme.deepOrange,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
-                Icons.manage_search, // Изменена иконка на VIN
-                color: Colors.white,
-                size: 28,
-              ),
+              child: const Icon(Icons.manage_search, color: Colors.white, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Найти по VIN',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   Text(
                     'Введите VIN-номер',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: AppTheme.deepOrange,
-              size: 16,
-            ),
+            Icon(Icons.arrow_forward_ios, color: AppTheme.deepOrange, size: 16),
           ],
         ),
       ),
@@ -233,69 +215,76 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
   }
 
   Widget _buildCarCard(Car car, BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: AppTheme.lightOrange,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Text(
-              car.brand[0],
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.deepOrange,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
+    return GestureDetector(
+      onTap: () async {
+        final prefs = await SharedPreferences.getInstance();
+        if (widget.addMode) {
+          final list = prefs.getStringList('my_cars') ?? [];
+          final carJson = jsonEncode(car.toJson());
+          if (!list.contains(carJson)) {
+            list.add(carJson);
+            await prefs.setStringList('my_cars', list);
+          }
+        } else {
+          await prefs.setString('selected_car', jsonEncode(car.toJson()));
+          final list = prefs.getStringList('my_cars') ?? [];
+          final carJson = jsonEncode(car.toJson());
+          if (!list.contains(carJson)) {
+            list.add(carJson);
+            await prefs.setStringList('my_cars', list);
+          }
+        }
+        if (!context.mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => CategoriesScreen(car: car)),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.deepOrange.withOpacity(0.3)),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppTheme.deepOrange.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  car.brand[0],
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.deepOrange),
+                ),
               ),
             ),
-          ),
-        ),
-        title: Text(
-          car.fullName,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
-        ),
-        subtitle: Text('${car.generation} • ${car.years}'),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          color: AppTheme.deepOrange,
-          size: 16,
-        ),
-        onTap: () async {
-          final prefs = await SharedPreferences.getInstance();
-          if (widget.addMode) {
-            // Добавляем в список "мои автомобили"
-            final list = prefs.getStringList('my_cars') ?? [];
-            final carJson = jsonEncode(car.toJson());
-            if (!list.contains(carJson)) {
-              list.add(carJson);
-              await prefs.setStringList('my_cars', list);
-            }
-          } else {
-            await prefs.setString('selected_car', jsonEncode(car.toJson()));
-            // Также добавляем в my_cars если ещё нет
-            final list = prefs.getStringList('my_cars') ?? [];
-            final carJson = jsonEncode(car.toJson());
-            if (!list.contains(carJson)) {
-              list.add(carJson);
-              await prefs.setStringList('my_cars', list);
-            }
-          }
-          if (!context.mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CategoriesScreen(car: car),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(car.fullName, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: onSurface)),
+                  const SizedBox(height: 2),
+                  Text('${car.generation} • ${car.years}', style: TextStyle(fontSize: 13, color: onSurface.withOpacity(0.6))),
+                ],
+              ),
             ),
-          );
-        },
+            Icon(Icons.arrow_forward_ios, color: AppTheme.deepOrange, size: 16),
+          ],
+        ),
       ),
     );
   }

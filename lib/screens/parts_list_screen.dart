@@ -3,18 +3,14 @@ import 'part_detail_screen.dart';
 import '../models/car.dart';
 import '../models/category.dart';
 import '../models/part.dart';
-import '../database/database_helper.dart'; // <-- МЕНЯЕМ НА БД
+import '../database/database_helper.dart';
 import '../theme.dart';
 
-class PartsListScreen extends StatefulWidget { // <-- МЕНЯЕМ НА StatefulWidget
+class PartsListScreen extends StatefulWidget {
   final Car car;
   final Category category;
 
-  const PartsListScreen({
-    super.key,
-    required this.car,
-    required this.category
-  });
+  const PartsListScreen({super.key, required this.car, required this.category});
 
   @override
   State<PartsListScreen> createState() => _PartsListScreenState();
@@ -31,9 +27,7 @@ class _PartsListScreenState extends State<PartsListScreen> {
   }
 
   Future<void> _loadParts() async {
-    final dbHelper = DatabaseHelper();
-    final loadedParts = await dbHelper.getPartsByCategory(widget.category.id);
-
+    final loadedParts = await DatabaseHelper().getPartsByCategory(widget.category.id);
     setState(() {
       parts = loadedParts;
       isLoading = false;
@@ -42,132 +36,97 @@ class _PartsListScreenState extends State<PartsListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final cardColor = Theme.of(context).cardColor;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.category.name),
-      ),
+      appBar: AppBar(title: Text(widget.category.name)),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : parts.isEmpty
-          ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.build_circle_outlined,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'В этой категории пока нет деталей',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
-      )
-          : ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: parts.length,
-        itemBuilder: (context, index) {
-          final part = parts[index];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              leading: Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: AppTheme.lightOrange,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Icon(
-                    _getIconForCategory(widget.category.id),
-                    color: AppTheme.deepOrange,
-                  ),
-                ),
-              ),
-              title: Text(
-                part.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 4),
-                  Text(
-                    part.priceRange,
-                    style: TextStyle(
-                      color: AppTheme.deepOrange,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getDifficultyColor(part.difficulty).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          part.difficulty,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: _getDifficultyColor(part.difficulty),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        Icons.timer,
-                        size: 14,
-                        color: Colors.grey[500],
-                      ),
-                      const SizedBox(width: 4),
+                      Icon(Icons.build_circle_outlined, size: 64, color: onSurface.withOpacity(0.3)),
+                      const SizedBox(height: 16),
                       Text(
-                        '${part.estimatedTimeMin} мин',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        'В этой категории пока нет деталей',
+                        style: TextStyle(fontSize: 16, color: onSurface.withOpacity(0.5)),
                       ),
                     ],
                   ),
-                ],
-              ),
-              isThreeLine: true,
-              trailing: Icon(
-                Icons.arrow_forward_ios,
-                color: AppTheme.deepOrange,
-                size: 16,
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PartDetailScreen(
-                      car: widget.car,
-                      part: part,
-                    ),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: parts.length,
+                  itemBuilder: (context, index) {
+                    final part = parts[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      color: cardColor,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        leading: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: AppTheme.deepOrange.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Icon(_getIconForCategory(widget.category.id), color: AppTheme.deepOrange),
+                          ),
+                        ),
+                        title: Text(
+                          part.name,
+                          style: TextStyle(fontWeight: FontWeight.w600, color: onSurface),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            Text(
+                              part.priceRange,
+                              style: const TextStyle(color: AppTheme.deepOrange, fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: _getDifficultyColor(part.difficulty).withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    part.difficulty,
+                                    style: TextStyle(fontSize: 12, color: _getDifficultyColor(part.difficulty)),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(Icons.timer, size: 14, color: onSurface.withOpacity(0.4)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${part.estimatedTimeMin} мин',
+                                  style: TextStyle(fontSize: 12, color: onSurface.withOpacity(0.5)),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        isThreeLine: true,
+                        trailing: const Icon(Icons.arrow_forward_ios, color: AppTheme.deepOrange, size: 16),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PartDetailScreen(car: widget.car, part: part),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 

@@ -189,62 +189,32 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Сезонное обслуживание',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                               Text(
                                 '$currentSeason • Рекомендуемые проверки',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey[600],
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                 ),
                               ),
                             ],
                           ),
                         ],
                       ),
-                      // OutlinedButton(
-                      //   onPressed: () {
-                      //     Navigator.push(
-                      //       context,
-                      //       MaterialPageRoute(
-                      //         builder: (context) => AllSeasonalChecksScreen(
-                      //           currentSeason: currentSeason,
-                      //         ),
-                      //       ),
-                      //     );
-                      //   },
-                      //   style: OutlinedButton.styleFrom(
-                      //     foregroundColor: AppTheme.deepOrange,
-                      //     side: const BorderSide(
-                      //         width: 2.0,
-                      //         color: AppTheme.deepOrange
-                      //     ),
-                      //     shape: RoundedRectangleBorder(
-                      //       borderRadius: BorderRadius.circular(20.0),
-                      //     ),
-                      //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                      //   ),
-                      //   child: const Text('Все'),
-                      // ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white,
-                            Colors.white,
-                          ],
-                        ),
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: AppTheme.deepOrange.withOpacity(0.3),
@@ -267,8 +237,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                     ),
                                     child: Icon(
                                       check['icon'],
-                                      color:
-                                      AppTheme.deepOrange,
+                                      color: AppTheme.deepOrange,
                                       size: 22,
                                     ),
                                   ),
@@ -281,9 +250,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                           children: [
                                             Text(
                                               check['title'],
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 15,
+                                                color: Theme.of(context).colorScheme.onSurface,
                                               ),
                                             ),
                                             if (check['urgent'])
@@ -313,7 +283,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                           check['subtitle'],
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: Colors.grey[600],
+                                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                           ),
                                         ),
                                       ],
@@ -346,7 +316,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -378,7 +348,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       );
                     },
                     child: Card(
-                      elevation:4,
+                      elevation: 4,
+                      color: Theme.of(context).cardColor,
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
@@ -391,7 +362,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               width: 45,
                               height: 45,
                               decoration: BoxDecoration(
-                                color: AppTheme.lightOrange,
+                                color: AppTheme.deepOrange.withOpacity(0.15),
                                 shape: BoxShape.circle,
                               ),
                               child: Center(
@@ -405,9 +376,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             const SizedBox(height: 10),
                             Text(
                               category.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -416,7 +388,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               '${category.partCount} деталей',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.grey[600],
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                               ),
                             ),
                           ],
@@ -437,24 +409,26 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   void _showNotificationsDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)), // Уменьшен радиус
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (BuildContext context) {
         return Container(
-          padding: const EdgeInsets.all(16), // Было 20
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Уведомления',
                 style: TextStyle(
-                  fontSize: 18, // Было 24
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 12), // Было 16
+              const SizedBox(height: 12),
               _buildNotificationItem(
                 context: context,
                 icon: Icons.warning_amber,
@@ -494,18 +468,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     required String time,
     required bool isUrgent,
   }) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return ListTile(
-      dense: true, // Добавлено для компактности
-      contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4), // Уменьшен отступ
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: isUrgent ? Colors.red.withOpacity(0.1) : AppTheme.lightOrange,
+          color: isUrgent ? Colors.red.withOpacity(0.15) : AppTheme.deepOrange.withOpacity(0.12),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(
           icon,
-          size: 20, // Уменьшен размер иконки
+          size: 20,
           color: isUrgent ? Colors.red : AppTheme.deepOrange,
         ),
       ),
@@ -513,24 +488,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         title,
         style: TextStyle(
           fontWeight: isUrgent ? FontWeight.bold : FontWeight.normal,
-          color: isUrgent ? Colors.red : Colors.black,
-          fontSize: 13, // Добавлен размер текста
+          color: isUrgent ? Colors.red : onSurface,
+          fontSize: 13,
         ),
       ),
       subtitle: subtitle.isNotEmpty ? Text(
         subtitle,
-        style: const TextStyle(fontSize: 11), // Уменьшен размер текста
+        style: TextStyle(fontSize: 11, color: onSurface.withOpacity(0.6)),
       ) : null,
       trailing: Text(
         time,
-        style: TextStyle(
-          fontSize: 11,
-          color: Colors.grey[500],
-        ),
+        style: TextStyle(fontSize: 11, color: onSurface.withOpacity(0.5)),
       ),
-      onTap: () {
-        Navigator.pop(context);
-      },
+      onTap: () => Navigator.pop(context),
     );
   }
 }

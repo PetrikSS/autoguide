@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/car.dart';
 import '../models/user.dart';
 import '../theme.dart';
+import '../theme_notifier.dart';
 import 'car_selection_screen.dart';
 import 'categories_screen.dart';
 
@@ -168,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               }),
               ListTile(
-                leading: const Icon(Icons.add_circle_outline, color: Colors.black),
+                leading: Icon(Icons.add_circle_outline, color: Theme.of(context).colorScheme.onSurface),
                 title: const Text('Добавить автомобиль', style: TextStyle(fontSize: 15),),
                 onTap: () {
                   Navigator.pop(context);
@@ -217,8 +218,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ListTile(
                 leading: const Icon(Icons.color_lens_outlined, color: AppTheme.deepOrange),
                 title: const Text('Тема оформления', style: TextStyle(fontSize: 15),),
-                trailing: const Text('Светлая'),
-                onTap: () {},
+                trailing: AnimatedBuilder(
+                  animation: ThemeNotifier(),
+                  builder: (_, __) => DropdownButton<ThemeMode>(
+                    value: ThemeNotifier().mode,
+                    underline: const SizedBox(),
+                    items: const [
+                      DropdownMenuItem(value: ThemeMode.light, child: Text('Светлая', style: TextStyle(fontSize: 13)),),
+                      DropdownMenuItem(value: ThemeMode.dark, child: Text('Тёмная', style: TextStyle(fontSize: 13))),
+                    ],
+                    onChanged: (mode) {
+                      if (mode != null) ThemeNotifier().setMode(mode);
+                    },
+                  ),
+                ),
+                onTap: null,
               ),
               ListTile(
                 leading: const Icon(Icons.language, color: AppTheme.deepOrange),

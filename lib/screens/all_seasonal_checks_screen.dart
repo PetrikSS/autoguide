@@ -150,7 +150,7 @@ class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -161,10 +161,7 @@ class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
                     ),
                   ],
                   border: isCurrentSeason
-                      ? Border.all(
-                    color: AppTheme.deepOrange,
-                    width: 2,
-                  )
+                      ? Border.all(color: AppTheme.deepOrange, width: 2)
                       : null,
                 ),
                 child: Column(
@@ -237,7 +234,7 @@ class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
                                   '${seasonData['checks'].length} рекомендаций',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey[600],
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                   ),
                                 ),
                               ],
@@ -301,7 +298,7 @@ class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
                                         check['subtitle'],
                                         style: TextStyle(
                                           fontSize: 13,
-                                          color: Colors.grey[600],
+                                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                         ),
                                       ),
                                     ],
