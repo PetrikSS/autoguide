@@ -8,7 +8,9 @@ import '../database/database_helper.dart';
 import '../theme.dart';
 
 class CarSelectionScreen extends StatefulWidget {
-  const CarSelectionScreen({super.key});
+  final bool addMode;
+
+  const CarSelectionScreen({super.key, this.addMode = false});
 
   @override
   State<CarSelectionScreen> createState() => _CarSelectionScreenState();
@@ -60,7 +62,7 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Выберите автомобиль'),
+        title: Text(widget.addMode ? 'Добавить автомобиль' : 'Выберите автомобиль'),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -268,9 +270,26 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
         ),
         onTap: () async {
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('selected_car', jsonEncode(car.toJson()));
+          if (widget.addMode) {
+            // Добавляем в список "мои автомобили"
+            final list = prefs.getStringList('my_cars') ?? [];
+            final carJson = jsonEncode(car.toJson());
+            if (!list.contains(carJson)) {
+              list.add(carJson);
+              await prefs.setStringList('my_cars', list);
+            }
+          } else {
+            await prefs.setString('selected_car', jsonEncode(car.toJson()));
+            // Также добавляем в my_cars если ещё нет
+            final list = prefs.getStringList('my_cars') ?? [];
+            final carJson = jsonEncode(car.toJson());
+            if (!list.contains(carJson)) {
+              list.add(carJson);
+              await prefs.setStringList('my_cars', list);
+            }
+          }
           if (!context.mounted) return;
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => CategoriesScreen(car: car),

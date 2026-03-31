@@ -113,8 +113,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 },
               ),
               Positioned(
-                right: 11,
-                top: 11,
+                right: 15,
+                top: 15,
                 child: Container(
                   width: 8,
                   height: 8,
