@@ -113,8 +113,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 },
               ),
               Positioned(
-                right: 15,
-                top: 15,
+                right: 11,
+                top: 12,
                 child: Container(
                   width: 8,
                   height: 8,
@@ -138,7 +138,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Column(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AllSeasonalChecksScreen(
+                        currentSeason: currentSeason,
+                      ),
+                    ),
+                  );
+                },
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -207,18 +218,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AllSeasonalChecksScreen(
-                            currentSeason: currentSeason,
-                          ),
-                        ),
-                      );
-                    },
-                    child:  Container(
+                  Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -296,7 +296,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                         Text(
                                           check['subtitle'],
                                           style: TextStyle(
-                                            fontSize: 10,
+                                            fontSize: 12,
                                             color: Colors.grey[600],
                                           ),
                                         ),
@@ -314,9 +314,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           ],
                         ),
                       ),
-                    ),
                   ),
                 ],
+                ),
               ),
             ),
           ),
@@ -381,11 +381,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               child: Center(
                                 child: Text(
                                   category.icon,
-                                  style: const TextStyle(fontSize: 22),
+                                  style: const TextStyle(fontSize: 24),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 10),
                             Text(
                               category.name,
                               style: const TextStyle(
@@ -398,7 +398,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             Text(
                               '${category.partCount} деталей',
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 11,
                                 color: Colors.grey[600],
                               ),
                             ),

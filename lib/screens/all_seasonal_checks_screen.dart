@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../theme.dart';
+import 'maintenance_history_screen.dart';
 
 class AllSeasonalChecksScreen extends StatefulWidget {
   final String currentSeason;
@@ -29,9 +31,10 @@ class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
     setState(() => _completed.addAll(saved));
   }
 
-  Future<void> _toggle(String key) async {
+  Future<void> _toggle(String key, String season, String title) async {
+    final isDone = _completed.contains(key);
     setState(() {
-      if (_completed.contains(key)) {
+      if (isDone) {
         _completed.remove(key);
       } else {
         _completed.add(key);
@@ -39,6 +42,25 @@ class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
     });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('seasonal_checks', _completed.toList());
+
+    // Обновляем историю
+    final historyList = prefs.getStringList('maintenance_history') ?? [];
+    if (!isDone) {
+      // Добавляем запись
+      historyList.add(jsonEncode({
+        'key': key,
+        'title': title,
+        'season': season,
+        'date': DateTime.now().toIso8601String(),
+      }));
+    } else {
+      // Удаляем запись по ключу
+      historyList.removeWhere((e) {
+        final m = jsonDecode(e) as Map<String, dynamic>;
+        return m['key'] == key;
+      });
+    }
+    await prefs.setStringList('maintenance_history', historyList);
   }
 
   // Полный список проверок для всех сезонов
@@ -104,6 +126,16 @@ class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
         title: const Text('Сезонное обслуживание'),
         backgroundColor: AppTheme.deepOrange,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'История',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MaintenanceHistoryScreen()),
+            ),
+          ),
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -122,9 +154,9 @@ class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withOpacity(0.6),
                       spreadRadius: 1,
-                      blurRadius: 10,
+                      blurRadius: 2,
                       offset: const Offset(0, 2),
                     ),
                   ],
@@ -281,7 +313,7 @@ class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
                                     color: isDone ? Colors.green : Colors.grey[400],
                                     size: 24,
                                   ),
-                                  onPressed: () => _toggle(key),
+                                  onPressed: () => _toggle(key, seasonData['season'] as String, check['title'] as String),
                                 ),
                               ],
                             ),
