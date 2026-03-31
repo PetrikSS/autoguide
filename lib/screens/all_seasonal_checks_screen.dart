@@ -1,13 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 
-class AllSeasonalChecksScreen extends StatelessWidget {
+class AllSeasonalChecksScreen extends StatefulWidget {
   final String currentSeason;
 
   const AllSeasonalChecksScreen({
     super.key,
     required this.currentSeason,
   });
+
+  @override
+  State<AllSeasonalChecksScreen> createState() => _AllSeasonalChecksScreenState();
+}
+
+class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
+  final Set<String> _completed = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList('seasonal_checks') ?? [];
+    setState(() => _completed.addAll(saved));
+  }
+
+  Future<void> _toggle(String key) async {
+    setState(() {
+      if (_completed.contains(key)) {
+        _completed.remove(key);
+      } else {
+        _completed.add(key);
+      }
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('seasonal_checks', _completed.toList());
+  }
 
   // Полный список проверок для всех сезонов
   List<Map<String, dynamic>> _getAllSeasonalChecks() {
@@ -19,7 +51,7 @@ class AllSeasonalChecksScreen extends StatelessWidget {
         'checks': [
           {'title': 'Смена шин', 'subtitle': 'Переобуваемся в летнюю резину', 'icon': Icons.tire_repair, 'urgent': true},
           {'title': 'Проверка кондиционера', 'subtitle': 'Заправка и диагностика', 'icon': Icons.ac_unit, 'urgent': false},
-          {'title': 'Омывайка', 'subtitle': 'Заменить на летнюю', 'icon': Icons.water_drop, 'urgent': false},
+          {'title': 'Омывающая жидкость', 'subtitle': 'Заменить на летнюю', 'icon': Icons.water_drop, 'urgent': false},
           {'title': 'Проверка дворников', 'subtitle': 'Заменить при необходимости', 'icon': Icons.remove_red_eye, 'urgent': false},
           {'title': 'Аккумулятор', 'subtitle': 'Проверка заряда после зимы', 'icon': Icons.battery_charging_full, 'urgent': false},
         ],
@@ -78,7 +110,7 @@ class AllSeasonalChecksScreen extends StatelessWidget {
         itemCount: allChecks.length,
         itemBuilder: (context, index) {
           final seasonData = allChecks[index];
-          final isCurrentSeason = seasonData['season'] == currentSeason;
+          final isCurrentSeason = seasonData['season'] == widget.currentSeason;
 
           return Column(
             children: [
@@ -187,7 +219,11 @@ class AllSeasonalChecksScreen extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
-                        children: seasonData['checks'].map<Widget>((check) {
+                        children: seasonData['checks'].asMap().entries.map<Widget>((entry) {
+                          final checkIndex = entry.key;
+                          final check = entry.value;
+                          final key = '${seasonData['season']}_$checkIndex';
+                          final isDone = _completed.contains(key);
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: Row(
@@ -221,28 +257,11 @@ class AllSeasonalChecksScreen extends StatelessWidget {
                                                     ? FontWeight.bold
                                                     : FontWeight.w500,
                                                 fontSize: 15,
+                                                decoration: isDone ? TextDecoration.lineThrough : null,
+                                                color: isDone ? Colors.grey : null,
                                               ),
                                             ),
                                           ),
-                                          // if (check['urgent'])
-                                          //   Container(
-                                          //     padding: const EdgeInsets.symmetric(
-                                          //       horizontal: 6,
-                                          //       vertical: 2,
-                                          //     ),
-                                          //     decoration: BoxDecoration(
-                                          //       color: Colors.red,
-                                          //       borderRadius: BorderRadius.circular(10),
-                                          //     ),
-                                          //     child: const Text(
-                                          //       'Срочно',
-                                          //       style: TextStyle(
-                                          //         fontSize: 10,
-                                          //         color: Colors.white,
-                                          //         fontWeight: FontWeight.w500,
-                                          //       ),
-                                          //     ),
-                                          //   ),
                                         ],
                                       ),
                                       const SizedBox(height: 2),
@@ -258,13 +277,11 @@ class AllSeasonalChecksScreen extends StatelessWidget {
                                 ),
                                 IconButton(
                                   icon: Icon(
-                                    Icons.circle_outlined,
-                                    color: Colors.grey[400],
+                                    isDone ? Icons.check_circle : Icons.circle_outlined,
+                                    color: isDone ? Colors.green : Colors.grey[400],
                                     size: 24,
                                   ),
-                                  onPressed: () {
-                                    // Отметить как выполненное
-                                  },
+                                  onPressed: () => _toggle(key),
                                 ),
                               ],
                             ),
