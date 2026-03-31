@@ -27,6 +27,22 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     _loadCategories();
   }
 
+  IconData _categoryIcon(String id) {
+    switch (id) {
+      case 'engine':      return Icons.settings;
+      case 'brakes':      return Icons.album;
+      case 'suspension':  return Icons.directions_car;
+      case 'electrics':   return Icons.bolt;
+      case 'exhaust':     return Icons.air;
+      case 'body':        return Icons.car_repair;
+      case 'interior':    return Icons.weekend;
+      case 'cooling':     return Icons.thermostat;
+      case 'fuel':        return Icons.local_gas_station;
+      case 'transmission':return Icons.sync_alt;
+      default:            return Icons.build;
+    }
+  }
+
   Future<void> _loadCategories() async {
     try {
       final dbHelper = DatabaseHelper();
@@ -379,9 +395,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                 shape: BoxShape.circle,
                               ),
                               child: Center(
-                                child: Text(
-                                  category.icon,
-                                  style: const TextStyle(fontSize: 24),
+                                child: Icon(
+                                  _categoryIcon(category.id),
+                                  color: AppTheme.deepOrange,
+                                  size: 24,
                                 ),
                               ),
                             ),
