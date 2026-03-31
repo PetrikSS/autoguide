@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'car_selection_screen.dart';
 import '../theme.dart';
 
@@ -40,6 +41,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
 
+  Future<void> _finishOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('seen_onboarding', true);
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => CarSelectionScreen()),
+    );
+  }
+
   void _nextPage() {
     if (_currentPage < _onboardingData.length - 1) {
       _pageController.nextPage(
@@ -47,19 +58,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      // Переходим к выбору авто
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) =>  CarSelectionScreen()),
-      );
+      _finishOnboarding();
     }
   }
 
   void _skipOnboarding() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) =>  CarSelectionScreen()),
-    );
+    _finishOnboarding();
   }
 
   @override

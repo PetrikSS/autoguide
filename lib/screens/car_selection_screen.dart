@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'categories_screen.dart';
+import 'vin_search_screen.dart';
 import '../models/car.dart';
 import '../database/database_helper.dart';
 import '../theme.dart';
@@ -15,6 +18,19 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
   List<Car> cars = [];
   bool isLoading = true;
   String? errorMessage;
+  String _searchQuery = '';
+  final _searchController = TextEditingController();
+
+  List<Car> get _filteredCars {
+    if (_searchQuery.isEmpty) return cars;
+    final q = _searchQuery.toLowerCase();
+    return cars.where((c) =>
+    c.brand.toLowerCase().contains(q) ||
+        c.model.toLowerCase().contains(q) ||
+        c.generation.toLowerCase().contains(q) ||
+        c.years.contains(q)
+    ).toList();
+  }
 
   @override
   void initState() {
@@ -45,14 +61,6 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Выберите автомобиль'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // Поиск
-            },
-          ),
-        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -64,7 +72,54 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Быстрый поиск по VIN (оставляем как есть)
+              // Поиск по названию (перенесен выше)
+              TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Поиск по марке, модели, году...',
+                  hintStyle: TextStyle(
+                    color: Colors.grey[400],
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Colors.black, // Оранжевая иконка поиска
+                  ),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() => _searchQuery = '');
+                    },
+                  )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.black.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppTheme.deepOrange,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                onChanged: (v) => setState(() => _searchQuery = v),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Быстрый поиск по VIN
               _buildVinSearch(),
 
               const SizedBox(height: 24),
@@ -72,24 +127,35 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Популярные модели',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                  Text(
+                    _searchQuery.isEmpty ? 'Популярные модели' : 'Результаты поиска',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  if (_searchQuery.isNotEmpty)
+                    Text(
+                      '${_filteredCars.length} авто',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('Все марки'),
-                  ),
                 ],
               ),
 
               const SizedBox(height: 16),
 
-              // Список авто из базы данных
-              ...cars.map((car) => _buildCarCard(car, context)),
+              if (_filteredCars.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
+                        const SizedBox(height: 8),
+                        Text('Ничего не найдено', style: TextStyle(color: Colors.grey[600])),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ..._filteredCars.map((car) => _buildCarCard(car, context)),
             ],
           ),
         ),
@@ -98,58 +164,68 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
   }
 
   Widget _buildVinSearch() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.lightOrange,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppTheme.deepOrange,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppTheme.deepOrange,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.qr_code_scanner,
-              color: Colors.white,
-              size: 28,
-            ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VinSearchScreen(cars: cars),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Найти по VIN',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Сфотографируйте или введите VIN-номер',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.arrow_forward_ios,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.lightOrange,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
             color: AppTheme.deepOrange,
-            size: 16,
+            width: 1,
           ),
-        ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.deepOrange,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.manage_search, // Изменена иконка на VIN
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Найти по VIN',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Введите VIN-номер',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: AppTheme.deepOrange,
+              size: 16,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -190,7 +266,10 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
           color: AppTheme.deepOrange,
           size: 16,
         ),
-        onTap: () {
+        onTap: () async {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('selected_car', jsonEncode(car.toJson()));
+          if (!context.mounted) return;
           Navigator.push(
             context,
             MaterialPageRoute(
