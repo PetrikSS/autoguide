@@ -17,6 +17,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   List<Car> _myCars = [];
+  bool _notificationsEnabled = true;
 
   @override
   void initState() {
@@ -183,7 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
 
-        // const Divider(),
+        const Divider(),
 
         // Сохранённые детали
         _buildSection(
@@ -244,9 +245,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 leading: const Icon(Icons.notifications_outlined, color: AppTheme.deepOrange),
                 title: const Text('Уведомления', style: TextStyle(fontSize: 15),),
                 trailing: Switch(
-                  value: true,
-                  onChanged: (value) {},
+                  value: _notificationsEnabled,
+                  onChanged: (value) => setState(() => _notificationsEnabled = value),
                   activeColor: AppTheme.deepOrange,
+                  inactiveThumbColor: Colors.grey[600],
+                  inactiveTrackColor: Colors.grey[400],
                 ),
               ),
             ],

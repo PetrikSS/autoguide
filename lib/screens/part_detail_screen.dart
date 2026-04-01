@@ -42,7 +42,7 @@ class PartDetailScreen extends StatelessWidget {
               child: Container(
                 height: 220,
                 width: double.infinity,
-                color: isDark ? const Color(0xFF1A1A1A) : Colors.grey.shade400,
+                color: isDark ? const Color(0xFF1A1A1A) : Color(0xFFD1D1D1),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
