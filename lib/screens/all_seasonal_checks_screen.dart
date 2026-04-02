@@ -1,13 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../theme.dart';
+import 'maintenance_history_screen.dart';
 
-class AllSeasonalChecksScreen extends StatelessWidget {
+class AllSeasonalChecksScreen extends StatefulWidget {
   final String currentSeason;
 
   const AllSeasonalChecksScreen({
     super.key,
     required this.currentSeason,
   });
+
+  @override
+  State<AllSeasonalChecksScreen> createState() => _AllSeasonalChecksScreenState();
+}
+
+class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
+  final Set<String> _completed = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList('seasonal_checks') ?? [];
+    setState(() => _completed.addAll(saved));
+  }
+
+  Future<void> _toggle(String key, String season, String title) async {
+    final isDone = _completed.contains(key);
+    setState(() {
+      if (isDone) {
+        _completed.remove(key);
+      } else {
+        _completed.add(key);
+      }
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('seasonal_checks', _completed.toList());
+
+    // Обновляем историю
+    final historyList = prefs.getStringList('maintenance_history') ?? [];
+    if (!isDone) {
+      // Добавляем запись
+      historyList.add(jsonEncode({
+        'key': key,
+        'title': title,
+        'season': season,
+        'date': DateTime.now().toIso8601String(),
+      }));
+    } else {
+      // Удаляем запись по ключу
+      historyList.removeWhere((e) {
+        final m = jsonDecode(e) as Map<String, dynamic>;
+        return m['key'] == key;
+      });
+    }
+    await prefs.setStringList('maintenance_history', historyList);
+  }
 
   // Полный список проверок для всех сезонов
   List<Map<String, dynamic>> _getAllSeasonalChecks() {
@@ -19,7 +73,7 @@ class AllSeasonalChecksScreen extends StatelessWidget {
         'checks': [
           {'title': 'Смена шин', 'subtitle': 'Переобуваемся в летнюю резину', 'icon': Icons.tire_repair, 'urgent': true},
           {'title': 'Проверка кондиционера', 'subtitle': 'Заправка и диагностика', 'icon': Icons.ac_unit, 'urgent': false},
-          {'title': 'Омывайка', 'subtitle': 'Заменить на летнюю', 'icon': Icons.water_drop, 'urgent': false},
+          {'title': 'Омывающая жидкость', 'subtitle': 'Заменить на летнюю', 'icon': Icons.water_drop, 'urgent': false},
           {'title': 'Проверка дворников', 'subtitle': 'Заменить при необходимости', 'icon': Icons.remove_red_eye, 'urgent': false},
           {'title': 'Аккумулятор', 'subtitle': 'Проверка заряда после зимы', 'icon': Icons.battery_charging_full, 'urgent': false},
         ],
@@ -72,13 +126,23 @@ class AllSeasonalChecksScreen extends StatelessWidget {
         title: const Text('Сезонное обслуживание'),
         backgroundColor: AppTheme.deepOrange,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'История',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MaintenanceHistoryScreen()),
+            ),
+          ),
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: allChecks.length,
         itemBuilder: (context, index) {
           final seasonData = allChecks[index];
-          final isCurrentSeason = seasonData['season'] == currentSeason;
+          final isCurrentSeason = seasonData['season'] == widget.currentSeason;
 
           return Column(
             children: [
@@ -86,21 +150,18 @@ class AllSeasonalChecksScreen extends StatelessWidget {
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withOpacity(0.6),
                       spreadRadius: 1,
-                      blurRadius: 10,
+                      blurRadius: 2,
                       offset: const Offset(0, 2),
                     ),
                   ],
                   border: isCurrentSeason
-                      ? Border.all(
-                    color: AppTheme.deepOrange,
-                    width: 2,
-                  )
+                      ? Border.all(color: AppTheme.deepOrange, width: 2)
                       : null,
                 ),
                 child: Column(
@@ -173,7 +234,7 @@ class AllSeasonalChecksScreen extends StatelessWidget {
                                   '${seasonData['checks'].length} рекомендаций',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey[600],
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                   ),
                                 ),
                               ],
@@ -187,7 +248,11 @@ class AllSeasonalChecksScreen extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
-                        children: seasonData['checks'].map<Widget>((check) {
+                        children: seasonData['checks'].asMap().entries.map<Widget>((entry) {
+                          final checkIndex = entry.key;
+                          final check = entry.value;
+                          final key = '${seasonData['season']}_$checkIndex';
+                          final isDone = _completed.contains(key);
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: Row(
@@ -221,28 +286,11 @@ class AllSeasonalChecksScreen extends StatelessWidget {
                                                     ? FontWeight.bold
                                                     : FontWeight.w500,
                                                 fontSize: 15,
+                                                decoration: isDone ? TextDecoration.lineThrough : null,
+                                                color: isDone ? Colors.grey : null,
                                               ),
                                             ),
                                           ),
-                                          // if (check['urgent'])
-                                          //   Container(
-                                          //     padding: const EdgeInsets.symmetric(
-                                          //       horizontal: 6,
-                                          //       vertical: 2,
-                                          //     ),
-                                          //     decoration: BoxDecoration(
-                                          //       color: Colors.red,
-                                          //       borderRadius: BorderRadius.circular(10),
-                                          //     ),
-                                          //     child: const Text(
-                                          //       'Срочно',
-                                          //       style: TextStyle(
-                                          //         fontSize: 10,
-                                          //         color: Colors.white,
-                                          //         fontWeight: FontWeight.w500,
-                                          //       ),
-                                          //     ),
-                                          //   ),
                                         ],
                                       ),
                                       const SizedBox(height: 2),
@@ -250,7 +298,7 @@ class AllSeasonalChecksScreen extends StatelessWidget {
                                         check['subtitle'],
                                         style: TextStyle(
                                           fontSize: 13,
-                                          color: Colors.grey[600],
+                                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                         ),
                                       ),
                                     ],
@@ -258,13 +306,11 @@ class AllSeasonalChecksScreen extends StatelessWidget {
                                 ),
                                 IconButton(
                                   icon: Icon(
-                                    Icons.circle_outlined,
-                                    color: Colors.grey[400],
+                                    isDone ? Icons.check_circle : Icons.circle_outlined,
+                                    color: isDone ? Colors.green : Colors.grey[400],
                                     size: 24,
                                   ),
-                                  onPressed: () {
-                                    // Отметить как выполненное
-                                  },
+                                  onPressed: () => _toggle(key, seasonData['season'] as String, check['title'] as String),
                                 ),
                               ],
                             ),

@@ -27,6 +27,22 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     _loadCategories();
   }
 
+  IconData _categoryIcon(String id) {
+    switch (id) {
+      case 'engine':      return Icons.settings;
+      case 'brakes':      return Icons.album;
+      case 'suspension':  return Icons.directions_car;
+      case 'electrics':   return Icons.bolt;
+      case 'exhaust':     return Icons.air;
+      case 'body':        return Icons.car_repair;
+      case 'interior':    return Icons.weekend;
+      case 'cooling':     return Icons.thermostat;
+      case 'fuel':        return Icons.local_gas_station;
+      case 'transmission':return Icons.sync_alt;
+      default:            return Icons.build;
+    }
+  }
+
   Future<void> _loadCategories() async {
     try {
       final dbHelper = DatabaseHelper();
@@ -114,7 +130,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ),
               Positioned(
                 right: 11,
-                top: 11,
+                top: 12,
                 child: Container(
                   width: 8,
                   height: 8,
@@ -138,7 +154,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Column(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AllSeasonalChecksScreen(
+                        currentSeason: currentSeason,
+                      ),
+                    ),
+                  );
+                },
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -162,73 +189,32 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Сезонное обслуживание',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                               Text(
                                 '$currentSeason • Рекомендуемые проверки',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey[600],
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                 ),
                               ),
                             ],
                           ),
                         ],
                       ),
-                      // OutlinedButton(
-                      //   onPressed: () {
-                      //     Navigator.push(
-                      //       context,
-                      //       MaterialPageRoute(
-                      //         builder: (context) => AllSeasonalChecksScreen(
-                      //           currentSeason: currentSeason,
-                      //         ),
-                      //       ),
-                      //     );
-                      //   },
-                      //   style: OutlinedButton.styleFrom(
-                      //     foregroundColor: AppTheme.deepOrange,
-                      //     side: const BorderSide(
-                      //         width: 2.0,
-                      //         color: AppTheme.deepOrange
-                      //     ),
-                      //     shape: RoundedRectangleBorder(
-                      //       borderRadius: BorderRadius.circular(20.0),
-                      //     ),
-                      //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                      //   ),
-                      //   child: const Text('Все'),
-                      // ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                          MaterialPageRoute(
-                                    builder: (context) => AllSeasonalChecksScreen(
-                                      currentSeason: currentSeason,
-                                    ),
-                                  ),
-                      );
-                    },
-                    child:  Container(
+                  Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white,
-                            Colors.white,
-                          ],
-                        ),
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: AppTheme.deepOrange.withOpacity(0.3),
@@ -246,16 +232,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                     width: 40,
                                     height: 40,
                                     decoration: BoxDecoration(
-                                      color: check['urgent']
-                                          ? Colors.red.withOpacity(0.1)
-                                          : AppTheme.deepOrange.withOpacity(0.1),
+                                      color: AppTheme.deepOrange.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
                                       check['icon'],
-                                      color: check['urgent']
-                                          ? Colors.red
-                                          : AppTheme.deepOrange,
+                                      color: AppTheme.deepOrange,
                                       size: 22,
                                     ),
                                   ),
@@ -268,9 +250,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                           children: [
                                             Text(
                                               check['title'],
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 15,
+                                                color: Theme.of(context).colorScheme.onSurface,
                                               ),
                                             ),
                                             if (check['urgent'])
@@ -299,8 +282,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                         Text(
                                           check['subtitle'],
                                           style: TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                           ),
                                         ),
                                       ],
@@ -317,9 +300,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           ],
                         ),
                       ),
-                    ),
                   ),
                 ],
+                ),
               ),
             ),
           ),
@@ -333,7 +316,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -365,7 +348,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       );
                     },
                     child: Card(
-                      elevation:4,
+                      elevation: 4,
+                      color: Theme.of(context).cardColor,
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
@@ -378,22 +362,24 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               width: 45,
                               height: 45,
                               decoration: BoxDecoration(
-                                color: AppTheme.lightOrange,
+                                color: AppTheme.deepOrange.withOpacity(0.15),
                                 shape: BoxShape.circle,
                               ),
                               child: Center(
-                                child: Text(
-                                  category.icon,
-                                  style: const TextStyle(fontSize: 22),
+                                child: Icon(
+                                  _categoryIcon(category.id),
+                                  color: AppTheme.deepOrange,
+                                  size: 24,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 10),
                             Text(
                               category.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -401,8 +387,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             Text(
                               '${category.partCount} деталей',
                               style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[600],
+                                fontSize: 11,
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                               ),
                             ),
                           ],
@@ -423,29 +409,31 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   void _showNotificationsDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (BuildContext context) {
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Уведомления',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildNotificationItem(
                 context: context,
                 icon: Icons.warning_amber,
                 title: 'Срочно! Сезонная проверка',
-                subtitle: 'Пора менять шины на зимние',
+                subtitle: 'Проверьте, что сменили шины',
                 time: '2 часа назад',
                 isUrgent: true,
               ),
@@ -480,15 +468,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     required String time,
     required bool isUrgent,
   }) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: isUrgent ? Colors.red.withOpacity(0.1) : AppTheme.lightOrange,
-          borderRadius: BorderRadius.circular(8),
+          color: isUrgent ? Colors.red.withOpacity(0.15) : AppTheme.deepOrange.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(
           icon,
+          size: 20,
           color: isUrgent ? Colors.red : AppTheme.deepOrange,
         ),
       ),
@@ -496,20 +488,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         title,
         style: TextStyle(
           fontWeight: isUrgent ? FontWeight.bold : FontWeight.normal,
-          color: isUrgent ? Colors.red : Colors.black,
+          color: isUrgent ? Colors.red : onSurface,
+          fontSize: 13,
         ),
       ),
-      subtitle: Text(subtitle),
+      subtitle: subtitle.isNotEmpty ? Text(
+        subtitle,
+        style: TextStyle(fontSize: 11, color: onSurface.withOpacity(0.6)),
+      ) : null,
       trailing: Text(
         time,
-        style: TextStyle(
-          fontSize: 10,
-          color: Colors.grey[500],
-        ),
+        style: TextStyle(fontSize: 11, color: onSurface.withOpacity(0.5)),
       ),
-      onTap: () {
-        Navigator.pop(context);
-      },
+      onTap: () => Navigator.pop(context),
     );
   }
 }

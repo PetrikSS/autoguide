@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'car_selection_screen.dart';
 import '../theme.dart';
 
@@ -40,6 +41,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
 
+  Future<void> _finishOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('seen_onboarding', true);
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => CarSelectionScreen()),
+    );
+  }
+
   void _nextPage() {
     if (_currentPage < _onboardingData.length - 1) {
       _pageController.nextPage(
@@ -47,19 +58,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      // Переходим к выбору авто
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) =>  CarSelectionScreen()),
-      );
+      _finishOnboarding();
     }
   }
 
   void _skipOnboarding() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) =>  CarSelectionScreen()),
-    );
+    _finishOnboarding();
   }
 
   @override
@@ -119,23 +123,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             // Кнопка действия
             Padding(
               padding: const EdgeInsets.all(24.0),
-              child: ElevatedButton(
-                onPressed: _nextPage,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.deepOrange,
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFD85210), Color(0xFFFFBA00)],
                   ),
-                  elevation: 0,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Text(
-                  _currentPage == _onboardingData.length - 1
-                      ? 'Начать пользоваться'
-                      : 'Далее',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                child: ElevatedButton(
+                  onPressed: _nextPage,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.deepOrange,
+                    shadowColor: Colors.transparent,
+                    minimumSize: const Size(double.infinity, 56),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    _currentPage == _onboardingData.length - 1
+                        ? 'Начать пользоваться!'
+                        : 'Далее',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -159,14 +172,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             width: 150,
             height: 150,
             decoration: BoxDecoration(
-              color: item.color.withOpacity(0.1),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFD85210).withOpacity(0.1),
+                  const Color(0xFFFFBA00).withOpacity(0.1),
+                ],
+              ),
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Icon(
-                item.icon,
-                size: 100,
-                color: item.color,
+              child: ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [Color(0xFFD85210), Color(0xFFFFBA00)],
+                ).createShader(bounds),
+                child: Icon(
+                  item.icon,
+                  size: 100,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),

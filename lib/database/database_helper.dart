@@ -142,12 +142,22 @@ class DatabaseHelper {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('categories');
 
+    // Считаем реальное количество деталей для каждой категории
+    final countResult = await db.rawQuery(
+      'SELECT categoryId, COUNT(*) as cnt FROM parts GROUP BY categoryId',
+    );
+    final Map<String, int> countMap = {
+      for (final row in countResult)
+        row['categoryId'].toString(): (row['cnt'] as int)
+    };
+
     return List.generate(maps.length, (i) {
+      final id = maps[i]['id'].toString();
       return Category(
-        id: maps[i]['id'].toString(),
+        id: id,
         name: maps[i]['name'],
         icon: maps[i]['icon'],
-        partCount: maps[i]['partCount'],
+        partCount: countMap[id] ?? 0,
       );
     });
   }
