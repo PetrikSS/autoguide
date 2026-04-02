@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'categories_screen.dart';
 import 'vin_search_screen.dart';
+import 'auth_screen.dart';
 import '../models/car.dart';
 import '../database/database_helper.dart';
 import '../theme.dart';
@@ -38,6 +39,88 @@ class _CarSelectionScreenState extends State<CarSelectionScreen> {
   void initState() {
     super.initState();
     _loadCars();
+    if (!widget.addMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showAuthPrompt());
+    }
+  }
+
+  Future<void> _showAuthPrompt() async {
+    final prefs = await SharedPreferences.getInstance();
+    final shown = prefs.getBool('auth_prompt_shown') ?? false;
+    if (shown || !mounted) return;
+    await prefs.setBool('auth_prompt_shown', true);
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                width: 64, height: 64,
+                decoration: BoxDecoration(
+                  color: AppTheme.deepOrange.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.person_outline, size: 36, color: AppTheme.deepOrange),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Создайте профиль',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Сохраняйте историю обслуживания, избранные детали и настройки в своём аккаунте.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.deepOrange,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('Авторизоваться', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.grey[200],
+                    foregroundColor: Colors.grey[700],
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('Пропустить', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _loadCars() async {
