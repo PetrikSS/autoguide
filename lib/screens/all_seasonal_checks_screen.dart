@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../theme.dart';
+import '../database/database_helper.dart';
 import 'maintenance_history_screen.dart';
+import 'seasonal_check_detail_screen.dart';
 
 class AllSeasonalChecksScreen extends StatefulWidget {
   final String currentSeason;
@@ -255,7 +257,22 @@ class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
                           final isDone = _completed.contains(key);
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
-                            child: Row(
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () async {
+                                final db = DatabaseHelper();
+                                final detail = await db.getSeasonalCheckByIndex(
+                                  seasonData['season'] as String,
+                                  checkIndex,
+                                );
+                                if (!context.mounted) return;
+                                if (detail != null) {
+                                  Navigator.push(context, MaterialPageRoute(
+                                    builder: (_) => SeasonalCheckDetailScreen(check: detail),
+                                  ));
+                                }
+                              },
+                              child: Row(
                               children: [
                                 Container(
                                   width: 40,
@@ -313,6 +330,7 @@ class _AllSeasonalChecksScreenState extends State<AllSeasonalChecksScreen> {
                                   onPressed: () => _toggle(key, seasonData['season'] as String, check['title'] as String),
                                 ),
                               ],
+                            ),
                             ),
                           );
                         }).toList(),

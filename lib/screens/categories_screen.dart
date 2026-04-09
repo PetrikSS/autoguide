@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'all_seasonal_checks_screen.dart';
 import 'parts_list_screen.dart';
 import 'profile_screen.dart';
+import 'seasonal_check_detail_screen.dart';
 import '../models/car.dart';
 import '../models/category.dart';
 import '../database/database_helper.dart';
@@ -133,13 +134,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     }
   }
 
-  // Возвращает только невыполненные пункты текущего сезона
+  // Возвращает только невыполненные пункты текущего сезона — с оригинальным индексом
   List<Map<String, dynamic>> _getSeasonalChecks() {
     final season = _getCurrentSeason();
     final all = _getAllSeasonalChecks();
     return all.asMap().entries
         .where((e) => !_completedChecks.contains('${season}_${e.key}'))
-        .map((e) => e.value)
+        .map((e) => {...e.value, 'originalIndex': e.key})
         .toList();
   }
 
@@ -186,182 +187,202 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AllSeasonalChecksScreen(
-                        currentSeason: currentSeason,
-                      ),
-                    ),
-                  ).then((_) => _loadCompleted());
-                },
-                child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child:
+              Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppTheme.deepOrange,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.calendar_month,
-                              color: Colors.white,
-                              size: 20,
-                            ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AllSeasonalChecksScreen(
+                            currentSeason: currentSeason,
                           ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Сезонное обслуживание',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                              Text(
-                                '$currentSeason • Рекомендуемые проверки',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppTheme.deepOrange.withOpacity(0.3),
                         ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
+                      ).then((_) => _loadCompleted());
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            if (seasonalChecks.isEmpty)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Row(
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.deepOrange,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.calendar_month,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      width: 40, height: 40,
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Icon(Icons.check_circle_outline, color: Colors.green, size: 22),
-                                    ),
-                                    const SizedBox(width: 12),
                                     Text(
-                                      'Все проверки выполнены!',
+                                      'Сезонное обслуживание',
                                       style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
                                         color: Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Text(
+                                      '$currentSeason • Рекомендуемые проверки',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                       ),
                                     ),
                                   ],
                                 ),
-                              )
-                            else
-                              ...seasonalChecks.map((check) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.deepOrange.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      check['icon'],
-                                      color: AppTheme.deepOrange,
-                                      size: 22,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              check['title'],
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 15,
-                                                color: Theme.of(context).colorScheme.onSurface,
-                                              ),
-                                            ),
-                                            if (check['urgent'])
-                                              Container(
-                                                margin: const EdgeInsets.only(left: 8),
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 6,
-                                                  vertical: 2,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.red,
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: const Text(
-                                                  'Срочно',
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppTheme.deepOrange.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              if (seasonalChecks.isEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 40, height: 40,
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          check['subtitle'],
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                        child: const Icon(Icons.check_circle_outline, color: Colors.green, size: 22),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Все проверки выполнены!',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                          color: Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                ...seasonalChecks.map((check) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(12),
+                                    onTap: () async {
+                                      final detail = await DatabaseHelper().getSeasonalCheckByIndex(
+                                        currentSeason,
+                                        check['originalIndex'] as int,
+                                      );
+                                      if (!context.mounted) return;
+                                      if (detail != null) {
+                                        Navigator.push(context, MaterialPageRoute(
+                                          builder: (_) => SeasonalCheckDetailScreen(check: detail),
+                                        ));
+                                      }
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.deepOrange.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(12),
                                           ),
+                                          child: Icon(
+                                            check['icon'],
+                                            color: AppTheme.deepOrange,
+                                            size: 22,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    check['title'],
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.w600,
+                                                      fontSize: 15,
+                                                      color: Theme.of(context).colorScheme.onSurface,
+                                                    ),
+                                                  ),
+                                                  if (check['urgent'])
+                                                    Container(
+                                                      margin: const EdgeInsets.only(left: 8),
+                                                      padding: const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.red,
+                                                        borderRadius: BorderRadius.circular(10),
+                                                      ),
+                                                      child: const Text(
+                                                        'Срочно',
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                check['subtitle'],
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: AppTheme.deepOrange,
+                                          size: 14,
                                         ),
                                       ],
                                     ),
                                   ),
-                                  Icon(
-                                    Icons.arrow_forward_ios,
-                                    color: AppTheme.deepOrange,
-                                    size: 14,
-                                  ),
-                                ],
-                              ),
-                            )).toList(),
-                          ],
+                                )).toList(),
+                            ],
+                          ),
                         ),
                       ),
-                  ),
                 ],
-                ),
-              ),
+              )
             ),
           ),
 

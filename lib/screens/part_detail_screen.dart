@@ -42,19 +42,19 @@ class PartDetailScreen extends StatelessWidget {
               child: Container(
                 height: 220,
                 width: double.infinity,
-                color: isDark ? const Color(0xFF1A1A1A) : Color(0xFFD1D1D1),
+                color: isDark ? const Color(0xFF1A1A1A) : Colors.grey.shade200,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
                     Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.image, size: 64, color: Colors.white38),
-                          SizedBox(height: 8),
-                          Text('Фото детали', style: TextStyle(color: Colors.white60, fontWeight: FontWeight.w500)),
-                          SizedBox(height: 4),
-                          Text('нажмите для увеличения', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                        children: [
+                          Icon(Icons.image, size: 64, color: isDark ? Colors.white24 : Colors.grey[400],),
+                          const SizedBox(height: 8),
+                          Text('Фото детали', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey[500], fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 4),
+                          Text('нажмите для увеличения', style: TextStyle(color: isDark ? Colors.white38 : Colors.grey[500], fontSize: 12)),
                         ],
                       ),
                     ),

@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import '../models/car.dart';
 import '../models/category.dart';
 import '../models/part.dart';
+import '../models/seasonal_check.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -103,7 +104,21 @@ class DatabaseHelper {
     }
 
     // Открываем базу
-    return await openDatabase(path);
+    final db = await openDatabase(path);
+
+    // Проверяем наличие колонки checkIndex — если нет, значит старая база, пересоздаём
+    try {
+      await db.rawQuery('SELECT checkIndex FROM seasonal_checks LIMIT 1');
+    } catch (_) {
+      print('🔄 Колонка checkIndex не найдена, обновляем базу...');
+      await db.close();
+      await File(path).delete();
+      final data = await rootBundle.load('assets/database/autoguide.db');
+      await File(path).writeAsBytes(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+      return await openDatabase(path);
+    }
+
+    return db;
   }
 
   // ============ МЕТОДЫ ДЛЯ РАБОТЫ С МАШИНАМИ ============
@@ -240,6 +255,61 @@ class DatabaseHelper {
       videoUrl: maps[0]['videoUrl'],
       oemNumbers: List<String>.from(json.decode(maps[0]['oemNumbers'])),
       imageUrl: maps[0]['imageUrl'],
+    );
+  }
+
+  // ============ МЕТОДЫ ДЛЯ РАБОТЫ С СЕЗОННЫМИ ПРОВЕРКАМИ ============
+  Future<List<SeasonalCheck>> getSeasonalChecksBySeason(String season) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'seasonal_checks',
+      where: 'season = ?',
+      whereArgs: [season],
+    );
+    return maps.map((m) => SeasonalCheck(
+      id: m['id'] as int,
+      name: m['name'],
+      season: m['season'],
+      checkIndex: m['checkIndex'] as int?,
+      description: m['description'],
+      optimalMonths: m['optimalMonths'],
+      priceRange: m['priceRange'],
+      symptoms: m['symptoms'] != null ? List<String>.from(json.decode(m['symptoms'])) : [],
+      note: m['note'],
+      tools: m['tools'] != null ? List<String>.from(json.decode(m['tools'])) : [],
+      instruction: m['instruction'],
+      difficulty: m['difficulty'],
+      estimatedTimeMin: m['estimatedTimeMin'],
+      videoUrl: m['videoUrl'],
+      imageUrl: m['imageUrl'],
+    )).toList();
+  }
+
+  Future<SeasonalCheck?> getSeasonalCheckByIndex(String season, int checkIndex) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'seasonal_checks',
+      where: 'season = ? AND checkIndex = ?',
+      whereArgs: [season, checkIndex],
+    );
+    if (maps.isEmpty) return null;
+    final m = maps.first;
+    return SeasonalCheck(
+      id: m['id'] as int,
+      name: m['name'],
+      season: m['season'],
+      checkIndex: m['checkIndex'] as int?,
+      description: m['description'],
+      optimalMonths: m['optimalMonths'],
+      priceRange: m['priceRange'],
+      symptoms: m['symptoms'] != null ? List<String>.from(json.decode(m['symptoms'])) : [],
+      note: m['note'],
+      tools: m['tools'] != null ? List<String>.from(json.decode(m['tools'])) : [],
+      instruction: m['instruction'],
+      difficulty: m['difficulty'],
+      estimatedTimeMin: m['estimatedTimeMin'],
+      videoUrl: m['videoUrl'],
+      imageUrl: m['imageUrl'],
     );
   }
 }
