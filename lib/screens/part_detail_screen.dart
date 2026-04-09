@@ -58,6 +58,21 @@ class PartDetailScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+                    // Center(
+                    //   child: Row(
+                    //     mainAxisAlignment: MainAxisAlignment.center,
+                    //     children: [
+                    //       Icon(Icons.arrow_left, size: 30, color: AppTheme.deepOrange),
+                    //       Image.network(
+                    //         'https://tire.ua/image/catalog/articles/Vitano_maslo_filtr.jpg',
+                    //         width: 300,
+                    //         height: 220,
+                    //         fit: BoxFit.cover,
+                    //       ),
+                    //       Icon(Icons.arrow_right, size: 30, color: AppTheme.deepOrange),
+                    //     ],
+                    //   ),
+                    // ),
                     Positioned(
                       top: 16, right: 16,
                       child: Container(
