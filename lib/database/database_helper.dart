@@ -259,41 +259,16 @@ class DatabaseHelper {
   }
 
   // ============ МЕТОДЫ ДЛЯ РАБОТЫ С СЕЗОННЫМИ ПРОВЕРКАМИ ============
-  Future<List<SeasonalCheck>> getSeasonalChecksBySeason(String season) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'seasonal_checks',
-      where: 'season = ?',
-      whereArgs: [season],
-    );
-    return maps.map((m) => SeasonalCheck(
-      id: m['id'] as int,
-      name: m['name'],
-      season: m['season'],
-      checkIndex: m['checkIndex'] as int?,
-      description: m['description'],
-      optimalMonths: m['optimalMonths'],
-      priceRange: m['priceRange'],
-      symptoms: m['symptoms'] != null ? List<String>.from(json.decode(m['symptoms'])) : [],
-      note: m['note'],
-      tools: m['tools'] != null ? List<String>.from(json.decode(m['tools'])) : [],
-      instruction: m['instruction'],
-      difficulty: m['difficulty'],
-      estimatedTimeMin: m['estimatedTimeMin'],
-      videoUrl: m['videoUrl'],
-      imageUrl: m['imageUrl'],
-    )).toList();
-  }
-
-  Future<SeasonalCheck?> getSeasonalCheckByIndex(String season, int checkIndex) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'seasonal_checks',
-      where: 'season = ? AND checkIndex = ?',
-      whereArgs: [season, checkIndex],
-    );
-    if (maps.isEmpty) return null;
-    final m = maps.first;
+  SeasonalCheck _mapToSeasonalCheck(Map<String, dynamic> m) {
+    List<String> _splitPipe(dynamic val) {
+      if (val == null || val.toString().isEmpty) return [];
+      // Пробуем JSON, иначе разбиваем по |
+      try {
+        return List<String>.from(json.decode(val.toString()));
+      } catch (_) {
+        return val.toString().split('|').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+      }
+    }
     return SeasonalCheck(
       id: m['id'] as int,
       name: m['name'],
@@ -302,14 +277,35 @@ class DatabaseHelper {
       description: m['description'],
       optimalMonths: m['optimalMonths'],
       priceRange: m['priceRange'],
-      symptoms: m['symptoms'] != null ? List<String>.from(json.decode(m['symptoms'])) : [],
+      symptoms: _splitPipe(m['symptoms']),
       note: m['note'],
-      tools: m['tools'] != null ? List<String>.from(json.decode(m['tools'])) : [],
+      tools: _splitPipe(m['tools']),
       instruction: m['instruction'],
       difficulty: m['difficulty'],
       estimatedTimeMin: m['estimatedTimeMin'],
       videoUrl: m['videoUrl'],
       imageUrl: m['imageUrl'],
     );
+  }
+
+  Future<List<SeasonalCheck>> getSeasonalChecksBySeason(String season) async {
+    final db = await database;
+    final maps = await db.query('seasonal_checks', where: 'season = ?', whereArgs: [season]);
+    return maps.map(_mapToSeasonalCheck).toList();
+  }
+
+  Future<SeasonalCheck?> getSeasonalCheckByIndex(String season, int checkIndex) async {
+    final db = await database;
+    final maps = await db.query(
+      'seasonal_checks',
+      where: 'season = ? AND checkIndex = ?',
+      whereArgs: [season, checkIndex],
+    );
+    if (maps.isEmpty) {
+      final all = await db.query('seasonal_checks', where: 'season = ?', whereArgs: [season]);
+      if (checkIndex < all.length) return _mapToSeasonalCheck(all[checkIndex]);
+      return null;
+    }
+    return _mapToSeasonalCheck(maps.first);
   }
 }

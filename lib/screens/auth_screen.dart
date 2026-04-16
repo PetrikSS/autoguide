@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -25,12 +26,18 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   bool _regPasswordVisible = false;
   bool _regRepeatVisible = false;
 
+  bool _isLoading = false;
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
-      setState(() => _currentTab = _tabController.index);
+      setState(() {
+        _currentTab = _tabController.index;
+        _errorMessage = null;
+      });
     });
   }
 
@@ -44,6 +51,94 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     _regPasswordController.dispose();
     _regRepeatPasswordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _login() async {
+    final email = _loginEmailController.text.trim();
+    final password = _loginPasswordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() => _errorMessage = 'Заполните все поля');
+      return;
+    }
+
+    setState(() { _isLoading = true; _errorMessage = null; });
+
+    try {
+      await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+      if (!mounted) return;
+      Navigator.pop(context); // закрываем экран авторизации
+    } on AuthException catch (e) {
+      setState(() => _errorMessage = _translateError(e.message));
+    } catch (e) {
+      setState(() => _errorMessage = 'Ошибка соединения');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _register() async {
+    final name = _regNameController.text.trim();
+    final email = _regEmailController.text.trim();
+    final password = _regPasswordController.text;
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      setState(() => _errorMessage = 'Заполните все поля');
+      return;
+    }
+    if (password.length < 6) {
+      setState(() => _errorMessage = 'Пароль должен быть не менее 6 символов');
+      return;
+    }
+
+    setState(() { _isLoading = true; _errorMessage = null; });
+
+    try {
+      await Supabase.instance.client.auth.signUp(
+        email: email,
+        password: password,
+        data: {'display_name': name},
+      );
+      if (!mounted) return;
+      _showSuccessDialog();
+    } on AuthException catch (e) {
+      setState(() => _errorMessage = _translateError(e.message));
+    } catch (e) {
+      setState(() => _errorMessage = 'Ошибка соединения');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  String _translateError(String message) {
+    if (message.contains('Invalid login credentials')) return 'Неверный email или пароль';
+    if (message.contains('Email not confirmed')) return 'Подтвердите email перед входом';
+    if (message.contains('User already registered')) return 'Пользователь с таким email уже существует';
+    if (message.contains('Password should be')) return 'Пароль слишком короткий';
+    if (message.contains('Unable to validate')) return 'Неверный формат email';
+    return message;
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Регистрация успешна'),
+        content: const Text('На вашу почту отправлено письмо для подтверждения. Проверьте входящие.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _tabController.animateTo(0);
+            },
+            child: const Text('Войти', style: TextStyle(color: AppTheme.deepOrange)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -94,8 +189,8 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildLoginTab(context, isDark, onSurface),
-                _buildRegisterTab(context, isDark, onSurface),
+                _KeepAliveTab(child: _buildLoginTab(context, isDark, onSurface)),
+                _KeepAliveTab(child: _buildRegisterTab(context, isDark, onSurface)),
               ],
             ),
           ),
@@ -165,16 +260,34 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: _isLoading ? null : _login,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.deepOrange,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              child: const Text('Войти', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              child: _isLoading && _currentTab == 0
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Войти', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             ),
           ),
+          if (_errorMessage != null && _currentTab == 0) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 13))),
+              ]),
+            ),
+          ],
           const SizedBox(height: 16),
           // Center(
           //   child: TextButton(
@@ -275,16 +388,34 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: _isLoading ? null : _register,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.deepOrange,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              child: const Text('Зарегистрироваться', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              child: _isLoading && _currentTab == 1
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Зарегистрироваться', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             ),
           ),
+          if (_errorMessage != null && _currentTab == 1) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 13))),
+              ]),
+            ),
+          ],
           const SizedBox(height: 16),
           // Center(
           //   child: TextButton(
@@ -345,5 +476,24 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         ),
       ],
     );
+  }
+}
+
+class _KeepAliveTab extends StatefulWidget {
+  final Widget child;
+  const _KeepAliveTab({required this.child});
+
+  @override
+  State<_KeepAliveTab> createState() => _KeepAliveTabState();
+}
+
+class _KeepAliveTabState extends State<_KeepAliveTab> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

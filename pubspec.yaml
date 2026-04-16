@@ -19,6 +19,7 @@ dependencies:
   path_provider: ^2.1.5
   sqflite_common_ffi: ^2.3.4
   shared_preferences: ^2.3.0
+  supabase_flutter: ^2.5.0
 
 
 dev_dependencies:

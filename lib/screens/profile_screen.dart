@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/car.dart';
-import '../models/user.dart';
+import '../models/part.dart';
+import '../services/saved_parts_service.dart';
 import '../theme.dart';
 import '../theme_notifier.dart';
 import 'car_selection_screen.dart';
 import 'categories_screen.dart';
+import 'auth_screen.dart';
+import 'part_detail_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,12 +21,45 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   List<Car> _myCars = [];
+  List<Part> _savedParts = [];
   bool _notificationsEnabled = true;
 
   @override
   void initState() {
     super.initState();
     _loadCars();
+    _loadSavedParts();
+  }
+
+  Future<void> _loadSavedParts() async {
+    final parts = await SavedPartsService.getAll();
+    if (mounted) setState(() => _savedParts = parts);
+  }
+
+  Future<void> _confirmRemovePart(Part part) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Удалить деталь?", style: TextStyle(fontSize: 20),),
+        content: Text('${part.name} будет удалена из сохранённых.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(foregroundColor: Colors.grey),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.deepOrange),
+            child: const Text('Удалить'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await SavedPartsService.remove(part.id);
+      _loadSavedParts();
+    }
   }
 
   Future<void> _loadCars() async {
@@ -79,7 +116,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = User.demoUser();
+    final supaUser = Supabase.instance.client.auth.currentUser;
+    final displayName = supaUser?.userMetadata?['display_name'] as String?
+        ?? supaUser?.email?.split('@').first
+        ?? 'Пользователь';
+    final email = supaUser?.email ?? '';
+    final avatarLetter = displayName.isNotEmpty ? displayName[0].toUpperCase() : '?';
+
+    final isLoggedIn = supaUser != null;
+
+    if (!isLoggedIn) {
+      return ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: AppTheme.deepOrange,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 80, height: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.person_outline, size: 44, color: Colors.white),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('Вы не авторизованы', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const SizedBox(height: 4),
+                  const Text('Войдите или создайте профиль', style: TextStyle(fontSize: 13, color: Colors.white70)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthScreen())).then((_) {
+                  if (mounted) setState(() {});
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.deepOrange,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: const Text('Авторизация', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ],
+      );
+    }
 
     return ListView(
       padding: EdgeInsets.zero,
@@ -108,7 +208,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Center(
                     child: Text(
-                      user.name[0].toUpperCase(),
+                      avatarLetter,
                       style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
@@ -119,12 +219,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  user.name,
+                  displayName,
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  user.email,
+                  email,
                   style: const TextStyle(fontSize: 14, color: Colors.white70),
                 ),
               ],
@@ -191,7 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: 'Сохраненные детали',
           child: Column(
             children: [
-              ...user.savedParts.map((part) => ListTile(
+              ...(_savedParts).map((part) => ListTile(
                 leading: Container(
                   width: 36,
                   height: 36,
@@ -201,10 +301,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: const Icon(Icons.bookmark, size: 18, color: AppTheme.deepOrange),
                 ),
-                title: Text(part, style: TextStyle(fontSize: 15),),
+                title: Text(part.name),
                 trailing: Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  final car = _myCars.isNotEmpty
+                      ? _myCars.first
+                      : Car(brand: '', model: '', generation: '', years: '');
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => PartDetailScreen(car: car, part: part)),
+                  );
+                },
+                onLongPress: () => _confirmRemovePart(part),
               )),
+              if (_savedParts.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text('Нет сохранённых деталей', style: TextStyle(color: Colors.grey[500], fontSize: 14)),
+                ),
             ],
           ),
         ),
@@ -261,7 +376,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Выйти из аккаунта?'),
+                  content: const Text('Вы уверены, что хотите выйти?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      style: TextButton.styleFrom(foregroundColor: Colors.grey),
+                      child: const Text('Отмена'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      child: const Text('Выйти'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmed != true || !context.mounted) return;
+              await Supabase.instance.client.auth.signOut();
+              Navigator.pop(context); // закрываем drawer
+              setState(() {});
+            },
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.red,
               side: const BorderSide(color: Colors.red),

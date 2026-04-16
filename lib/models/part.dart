@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Part {
   final String id;
   final String name;
@@ -31,4 +33,37 @@ class Part {
     required this.imageUrl,
   });
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'categoryId': categoryId,
+    'description': description,
+    'location': location,
+    'priceRange': priceRange,
+    'symptoms': jsonEncode(symptoms),
+    'tools': jsonEncode(tools),
+    'instructions': instructions,
+    'difficulty': difficulty,
+    'estimatedTimeMin': estimatedTimeMin,
+    'videoUrl': videoUrl,
+    'oemNumbers': jsonEncode(oemNumbers),
+    'imageUrl': imageUrl,
+  };
+
+  factory Part.fromJson(Map<String, dynamic> j) => Part(
+    id: j['id'].toString(),
+    name: j['name'],
+    categoryId: j['categoryId'].toString(),
+    description: j['description'],
+    location: j['location'],
+    priceRange: j['priceRange'],
+    symptoms: List<String>.from(jsonDecode(j['symptoms'])),
+    tools: List<String>.from(jsonDecode(j['tools'])),
+    instructions: j['instructions'],
+    difficulty: j['difficulty'],
+    estimatedTimeMin: j['estimatedTimeMin'],
+    videoUrl: j['videoUrl'],
+    oemNumbers: List<String>.from(jsonDecode(j['oemNumbers'])),
+    imageUrl: j['imageUrl'],
+  );
 }
